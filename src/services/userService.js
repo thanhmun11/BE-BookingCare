@@ -18,7 +18,7 @@ let handleUserLogin = (email, password) => {
             "firstName",
             "lastName",
             "address",
-            "phonenumber",
+            "phoneNumber",
             "gender",
             "image",
           ],

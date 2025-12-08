@@ -2,8 +2,6 @@ const db = require("../models/index");
 require("dotenv").config();
 const _ = require("lodash");
 const emailService = require("./emailService");
-const { resolve } = require("path");
-// import schedule from "../models/schedule";
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
