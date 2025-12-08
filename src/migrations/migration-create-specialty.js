@@ -9,7 +9,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      image: { type: Sequelize.BLOB("long") },
       name: { type: Sequelize.STRING },
       descriptionHTML: {
         type: Sequelize.TEXT,
@@ -17,6 +16,8 @@ module.exports = {
       descriptionMarkdown: {
         type: Sequelize.TEXT,
       },
+      image: { type: Sequelize.BLOB("long") },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

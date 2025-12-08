@@ -36,8 +36,8 @@ let postBookAppointment = (data) => {
           language: data.language,
           redirectLink: buildUrlEmail(data.doctorId, token),
         });
-        //upsert patient information and account
-        let user = await db.User.findOrCreate({
+        //upsert patient Information and account
+        let [user, created] = await db.User.findOrCreate({
           where: { email: data.email },
           defaults: {
             email: data.email,
@@ -48,20 +48,40 @@ let postBookAppointment = (data) => {
             firstName: data.fullName,
           },
         });
-        //create a booking appointment record
-        if (user && user[0]) {
-          await db.Booking.findOrCreate({
-            where: { patientId: user[0].id },
-            defaults: {
-              statusId: "S1",
-              doctorId: data.doctorId,
-              patientId: user[0].id,
-              date: data.date,
-              timeType: data.timeType,
-              token: token,
-            },
+
+        if (!user || !user.id) {
+          return resolve({
+            errCode: 3,
+            errMessage: "User not found or created!",
           });
         }
+
+        const existingBooking = await db.Booking.findOne({
+          where: {
+            patientId: user.id,
+            doctorId: data.doctorId,
+            date: data.date,
+            timeType: data.timeType,
+          },
+        });
+
+        if (existingBooking) {
+          // Nếu đã có lịch trùng → thông báo
+          resolve({
+            errCode: 2,
+            errMessage: "You already booked this time with this doctor!",
+          });
+          return;
+        }
+        //create a booking appointment record
+        await db.Booking.create({
+          statusId: "S1",
+          doctorId: data.doctorId,
+          patientId: user.id,
+          date: data.date,
+          timeType: data.timeType,
+          token: token,
+        });
         resolve({
           errCode: 0,
           errMessage: "Successfully postBookAppointment!",
