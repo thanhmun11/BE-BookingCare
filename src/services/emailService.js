@@ -12,7 +12,7 @@ let sendSimpleEmail = async (dataSend) => {
     },
   });
 
-  let info = await transporter.sendMail({
+  let Info = await transporter.sendMail({
     from: `"Simon Tora With Love" <simontora12102002@gmail.com>`,
     to: dataSend.recieverEmail,
     subject: "Thông Tin Đặt Lịch Khám Bệnh !",
@@ -42,7 +42,7 @@ let getBodyHTMLEmail = (dataSend) => {
 		<p>Details of appointment: </p>
 		<div><b>Appointment Time: ${dataSend.time}</b></div>
 		<div><b>Assigned Doctor: ${dataSend.doctorName}</b></div>
-		<p>If all the information provided above is exactly correct please click on the link below to confirm the appointment and complete the procedure of booking appointment</p>
+		<p>If all the Information provided above is exactly correct please click on the link below to confirm the appointment and complete the procedure of booking appointment</p>
 		<div>
 		<a href=${dataSend.redirectLink} target="_blank"> Click Here To Confirm !</a>
 		</div>
@@ -63,7 +63,7 @@ let sendAttachment = async (dataSend) => {
     },
   });
 
-  let info = await transporter.sendMail({
+  let Info = await transporter.sendMail({
     from: `"Simon Tora With Love" <simontora12102002@gmail.com>`,
     to: dataSend.email,
     subject: "Thông Tin Đặt Lịch Khám Bệnh !",

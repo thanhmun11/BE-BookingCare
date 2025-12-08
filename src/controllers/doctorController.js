@@ -44,9 +44,9 @@ let postInfoDoctor = async (req, res) => {
 
 let getDetailDoctorById = async (req, res) => {
   try {
-    let info = await doctorService.getDetailDoctorById(req.query.id);
-    // console.log(info);
-    return res.status(200).json(info);
+    let Info = await doctorService.getDetailDoctorById(req.query.id);
+    // console.log(Info);
+    return res.status(200).json(Info);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -58,8 +58,8 @@ let getDetailDoctorById = async (req, res) => {
 
 let bulkCreateSchedule = async (req, res) => {
   try {
-    let infor = await doctorService.bulkCreateSchedule(req.body);
-    return res.status(200).json(infor);
+    let Infor = await doctorService.bulkCreateSchedule(req.body);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -71,11 +71,11 @@ let bulkCreateSchedule = async (req, res) => {
 
 let getScheduleByDate = async (req, res) => {
   try {
-    let infor = await doctorService.getScheduleByDate(
+    let Infor = await doctorService.getScheduleByDate(
       req.query.doctorId,
       req.query.date
     );
-    return res.status(200).json(infor);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -87,8 +87,8 @@ let getScheduleByDate = async (req, res) => {
 
 let getExtraInfoDoctorById = async (req, res) => {
   try {
-    let infor = await doctorService.getExtraInfoDoctorById(req.query.doctorId);
-    return res.status(200).json(infor);
+    let Infor = await doctorService.getExtraInfoDoctorById(req.query.doctorId);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -100,8 +100,8 @@ let getExtraInfoDoctorById = async (req, res) => {
 
 let getProfileDoctorById = async (req, res) => {
   try {
-    let infor = await doctorService.getProfileDoctorById(req.query.doctorId);
-    return res.status(200).json(infor);
+    let Infor = await doctorService.getProfileDoctorById(req.query.doctorId);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -113,11 +113,11 @@ let getProfileDoctorById = async (req, res) => {
 
 let getListPatientForDoctor = async (req, res) => {
   try {
-    let infor = await doctorService.getListPatientForDoctor(
+    let Infor = await doctorService.getListPatientForDoctor(
       req.query.doctorId,
       req.query.date
     );
-    return res.status(200).json(infor);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({
@@ -129,8 +129,8 @@ let getListPatientForDoctor = async (req, res) => {
 
 let sendRemedy = async (req, res) => {
   try {
-    let infor = await doctorService.sendRemedy(req.body);
-    return res.status(200).json(infor);
+    let Infor = await doctorService.sendRemedy(req.body);
+    return res.status(200).json(Infor);
   } catch (e) {
     console.log(e);
     return res.status(200).json({

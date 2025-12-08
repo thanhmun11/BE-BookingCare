@@ -1,4 +1,3 @@
-const Buffer = require("buffer");
 const db = require("../models/index");
 require("dotenv").config();
 const _ = require("lodash");
@@ -16,7 +15,7 @@ let getTopDoctorHome = (limitInput) => {
         where: { roleId: "R2" },
         order: [["createdAt", "DESC"]],
         attributes: {
-          exclude: ["password", "image"],
+          exclude: ["password"],
         },
         include: [
           {
@@ -51,7 +50,7 @@ let getAllDoctors = () => {
       let doctors = await db.User.findAll({
         where: { roleId: "R2" },
         attributes: {
-          exclude: ["password", "image"],
+          exclude: ["password"],
         },
       });
       resolve({
@@ -106,7 +105,7 @@ let saveDetailInfoDoctor = (inputData) => {
           }
         }
 
-        //upsert to doctor_info table
+        //upsert to doctor_Info table
         let doctorInfo = await db.Doctor_Info.findOne({
           where: { doctorId: inputData.doctorId },
           raw: false,
@@ -177,7 +176,7 @@ let getDetailDoctorById = (inputId) => {
               attributes: ["valueEn", "valueVi"],
             },
             {
-              model: db.Doctor_Infor,
+              model: db.Doctor_Info,
               attributes: {
                 exclude: ["id", "doctorId"],
               },
@@ -205,7 +204,7 @@ let getDetailDoctorById = (inputId) => {
         });
         // console.log(data);
         if (data && data.image) {
-          data.image = new Buffer.from(data.image, "base64").toString("binary");
+          data.image = Buffer.from(data.image, "base64").toString("binary");
         }
         if (!data) data = {};
         resolve({
@@ -317,7 +316,7 @@ let getExtraInfoDoctorById = (idInput) => {
           errMessage: "Missing required parameters",
         });
       } else {
-        let data = await db.Doctor_Infor.findOne({
+        let data = await db.Doctor_Info.findOne({
           where: {
             doctorId: idInput,
           },
@@ -386,7 +385,7 @@ let getProfileDoctorById = (inputId) => {
             },
 
             {
-              model: db.Doctor_Infor,
+              model: db.Doctor_Info,
               attributes: {
                 exclude: ["id", "doctorId"],
               },
@@ -414,7 +413,7 @@ let getProfileDoctorById = (inputId) => {
         });
 
         if (data && data.image) {
-          data.image = new Buffer(data.image, "base64").toString("binary");
+          data.image = Buffer.from(data.image, "base64").toString("binary");
         }
 
         if (!data) data = {};
