@@ -4,6 +4,7 @@ import doctorController from "../controllers/doctorController.js";
 import patientController from "../controllers/patientController";
 import specialtyController from "../controllers/specialtyController";
 import clinicController from "../controllers/clinicController";
+import chatController from "../controllers/chatController";
 
 let router = express.Router();
 
@@ -75,6 +76,9 @@ let initWebRoutes = (app) => {
     "/api/get-detail-clinic-by-id",
     clinicController.getDetailsClinicById
   );
+
+  // chat
+  router.post("/api/chat-booking", chatController.chatBooking);
 
   return app.use("/", router);
 };
