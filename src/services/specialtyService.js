@@ -1,107 +1,92 @@
-const db = require("../models/index");
+const db = require("../models");
 
-let createNewSpecialty = (inputData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (
-        !inputData.name ||
-        !inputData.imageBase64 ||
-        !inputData.descriptionHTML ||
-        !inputData.descriptionMarkdown
-      ) {
-        resolve({
-          errCode: 1,
-          errMessage: "Missing Required Parameters - createNewSpecialty !",
-        });
-      } else {
-        await db.Specialty.create({
-          name: inputData.name,
-          image: inputData.imageBase64,
-          descriptionHTML: inputData.descriptionHTML,
-          descriptionMarkdown: inputData.descriptionMarkdown,
-        });
+const createSpecialty = async ({ name, image, description }) => {
+  if (!name) {
+    throw new Error("Missing specialty name");
+  }
 
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const existed = await db.Specialty.findOne({
+    where: { name },
+  });
+
+  if (existed) {
+    throw new Error("Specialty already exists");
+  }
+
+  return await db.Specialty.create({
+    name,
+    image,
+    description,
   });
 };
 
-let getAllSpecialty = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let data = await db.Specialty.findAll();
-      if (data && data.length > 0) {
-        data.map((item) => {
-          item.image = Buffer.from(item.image, "base64").toString("binary");
-          return item;
-        });
-      }
-      resolve({
-        errCode: 0,
-        errMessage: "Successfully !",
-        data,
-      });
-    } catch (e) {
-      reject(e);
-    }
+const getSpecialties = async () => {
+  return await db.Specialty.findAll({
+    order: [["name", "ASC"]],
   });
 };
 
-let getDetailsSpecialtyById = (specialtyId, location) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!specialtyId || !location) {
-        resolve({
-          errCode: 1,
-          errMessage:
-            "Missing Required Parameters - getDetailsSpecialtyById API",
-        });
-      } else {
-        let data = await db.Specialty.findOne({
-          where: { id: specialtyId },
-          attributes: ["descriptionHTML", "descriptionMarkdown"],
-        });
-
-        if (data) {
-          let doctorSpecialty = [];
-          if (location === "ALL") {
-            doctorSpecialty = await db.Doctor_Info.findAll({
-              where: { specialtyId: specialtyId },
-              attributes: ["doctorId", "provinceId"],
-            });
-          } else {
-            doctorSpecialty = await db.Doctor_Info.findAll({
-              where: {
-                specialtyId: specialtyId,
-                provinceId: location,
-              },
-              attributes: ["doctorId", "provinceId"],
-            });
-          }
-          data.doctorSpecialty = doctorSpecialty;
-        } else {
-          data = {};
-        }
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-          data,
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+const getSpecialtyById = async (id) => {
+  const specialty = await db.Specialty.findByPk(id, {
+    include: [
+      {
+        model: db.Doctor,
+        as: "doctors",
+      },
+    ],
   });
+
+  if (!specialty) {
+    throw new Error("Specialty not found");
+  }
+
+  return specialty;
+};
+
+const updateSpecialty = async (id, data) => {
+  const specialty = await db.Specialty.findByPk(id);
+
+  if (!specialty) {
+    throw new Error("Specialty not found");
+  }
+
+  if (data.name && data.name !== specialty.name) {
+    const existed = await db.Specialty.findOne({
+      where: { name: data.name },
+    });
+
+    if (existed) {
+      throw new Error("Specialty name already exists");
+    }
+  }
+
+  await specialty.update(data);
+  return specialty;
+};
+
+const deleteSpecialty = async (id) => {
+  const specialty = await db.Specialty.findByPk(id);
+
+  if (!specialty) {
+    throw new Error("Specialty not found");
+  }
+
+  const doctorCount = await db.Doctor.count({
+    where: { specialtyId: id },
+  });
+
+  if (doctorCount > 0) {
+    throw new Error("Cannot delete specialty that has doctors");
+  }
+
+  await specialty.destroy();
+  return true;
 };
 
 module.exports = {
-  createNewSpecialty,
-  getAllSpecialty,
-  getDetailsSpecialtyById,
+  createSpecialty,
+  getSpecialties,
+  getSpecialtyById,
+  updateSpecialty,
+  deleteSpecialty,
 };

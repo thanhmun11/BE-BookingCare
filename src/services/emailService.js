@@ -1,8 +1,20 @@
-require("dotenv").config;
+"use strict";
+require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-let sendSimpleEmail = async (dataSend) => {
-  let transporter = nodemailer.createTransport({
+const sendBookingEmail = async ({
+  email,
+  patientName,
+  doctorName,
+  workDate,
+  timeLabel,
+  token,
+}) => {
+  if (!email || !token) {
+    throw new Error("Missing email or token");
+  }
+
+  const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: false,
@@ -12,93 +24,35 @@ let sendSimpleEmail = async (dataSend) => {
     },
   });
 
-  let Info = await transporter.sendMail({
-    from: `"Simon Tora With Love" <simontora12102002@gmail.com>`,
-    to: dataSend.recieverEmail,
-    subject: "Thông Tin Đặt Lịch Khám Bệnh !",
-    text: "Hello World !",
-    html: getBodyHTMLEmail(dataSend),
-  });
-};
+  const confirmLink = `${process.env.FRONTEND_URL}/confirm-booking?token=${token}`;
+  const cancelLink = `${process.env.FRONTEND_URL}/cancel-booking?token=${token}`;
 
-let getBodyHTMLEmail = (dataSend) => {
-  let result = "";
-  if (dataSend.language === "vi") {
-    result = `<h3>Xin Chào ${dataSend.patientName} !</h3>
-		<p>Bạn Nhận Được Email Này Vì Đã Đặt Lịch Khám Bệnh Online Trên Edward-Clone-Bookingcare</p>
-		<p>Thông Tin Đặt Lịch Khám Bệnh: </p>
-		<div><b>Thời Gian Đặt Lịch: ${dataSend.time}</b></div>
-		<div><b>Bác Sĩ Chỉ Định: ${dataSend.doctorName}</b></div>
-		<p>Nếu Các Thông Tin Trên Là Đúng Vui Lòng Click Vào Đường Link Bên Dưới Để Xác Nhận Và Hoàn Tất Thủ Tục Đặt Lịch Khám Bệnh</p>
-		<div>
-		<a href=${dataSend.redirectLink} target="_blank"> Click Here To Confirm !</a>
-		</div>
-		<div>Xin Chân Thành Cảm Ơn !</div>`;
-  }
+  const mailOptions = {
+    from: `"Booking Care" <${process.env.EMAIL_APP}>`,
+    to: email,
+    subject: "Xác nhận lịch khám",
+    html: `
+      <h3>Xin chào ${patientName}</h3>
+      <p>Bạn đã đặt lịch khám với thông tin sau:</p>
+      <ul>
+        <li><b>Bác sĩ:</b> ${doctorName}</li>
+        <li><b>Ngày khám:</b> ${workDate}</li>
+        <li><b>Khung giờ:</b> ${timeLabel}</li>
+      </ul>
+      <p>Vui lòng xác nhận lịch hẹn:</p>
+      <p>
+        <a href="${confirmLink}">✅ Xác nhận lịch khám</a>
+      </p>
+      <p>
+        <a href="${cancelLink}">❌ Huỷ lịch khám</a>
+      </p>
+      <p><i>Nếu bạn không xác nhận, lịch sẽ tự động huỷ.</i></p>
+    `,
+  };
 
-  if (dataSend.language === "en") {
-    result = `<h3>Dear ${dataSend.patientName}</h3>
-		<p>You recieved this email because you have booked an online appointment on Edward-Clone-Bookingcare</p>
-		<p>Details of appointment: </p>
-		<div><b>Appointment Time: ${dataSend.time}</b></div>
-		<div><b>Assigned Doctor: ${dataSend.doctorName}</b></div>
-		<p>If all the Information provided above is exactly correct please click on the link below to confirm the appointment and complete the procedure of booking appointment</p>
-		<div>
-		<a href=${dataSend.redirectLink} target="_blank"> Click Here To Confirm !</a>
-		</div>
-		<div>Best Regard !</div>`;
-  }
-
-  return result;
-};
-
-let sendAttachment = async (dataSend) => {
-  let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_APP,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
-
-  let Info = await transporter.sendMail({
-    from: `"Simon Tora With Love" <simontora12102002@gmail.com>`,
-    to: dataSend.email,
-    subject: "Thông Tin Đặt Lịch Khám Bệnh !",
-    text: "Hello World !",
-    html: getBodyHTMLEmailRemedy(dataSend),
-    attachments: [
-      {
-        filename: `Remedy-${dataSend.patientId}-${new Date().getTime()}.png`,
-        content: dataSend.imgBase64.split("base64,")[1],
-        encoding: "base64",
-      },
-    ],
-  });
-};
-
-let getBodyHTMLEmailRemedy = (dataSend) => {
-  let result = "";
-  if (dataSend.language === "vi") {
-    result = `<h3>Xin Chào ${dataSend.patientName} !</h3>
-		<p>Bạn Nhận Được Email Này Vì Đã Hoàn Thành Khám Bệnh</p>
-		<p>Thông Tin Dơn Thuốc Được Gửi Trong File Đính Kèm </p>
-		<div>Xin Chân Thành Cảm Ơn !</div>`;
-  }
-
-  if (dataSend.language === "en") {
-    result = `<h3>Dear ${dataSend.patientName}</h3>
-		<p>You recieved this email because you have completed a medical check</p>
-		<p>Details of remedy file is attached in attachment !</p>
-		<div>Best Regard !</div>`;
-  }
-
-  return result;
+  await transporter.sendMail(mailOptions);
 };
 
 module.exports = {
-  sendSimpleEmail,
-  sendAttachment,
+  sendBookingEmail,
 };

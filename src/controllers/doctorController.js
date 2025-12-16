@@ -1,155 +1,44 @@
-const { get } = require("lodash");
 const doctorService = require("../services/doctorService");
 
-let getTopDoctorHome = async (req, res) => {
-  let limit = req.query.limit || 10;
-  //   console.log("limit: ", limit);
+const createDoctor = async (req, res) => {
   try {
-    let doctors = await doctorService.getTopDoctorHome(+limit);
-    return res.status(200).json(doctors);
+    const doctor = await doctorService.createDoctor(req.body);
+    res.json({ errCode: 0, data: doctor });
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
+    res.status(400).json({ errCode: 1, errMessage: e.message });
   }
 };
 
-let getAllDoctors = async (req, res) => {
+const getDoctors = async (req, res) => {
   try {
-    let doctors = await doctorService.getAllDoctors();
-    return res.status(200).json(doctors);
+    const doctors = await doctorService.getDoctors(req.query);
+    res.json({ errCode: 0, data: doctors });
   } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      message: "Error from server...",
-    });
+    res.status(400).json({ errCode: 1, errMessage: e.message });
   }
 };
 
-let postInfoDoctor = async (req, res) => {
+const getDoctorById = async (req, res) => {
   try {
-    let response = await doctorService.saveDetailInfoDoctor(req.body);
-    return res.status(200).json(response);
+    const doctor = await doctorService.getDoctorById(req.params.id);
+    res.json({ errCode: 0, data: doctor });
   } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      message: "Error from server...",
-    });
+    res.status(400).json({ errCode: 1, errMessage: e.message });
   }
 };
 
-let getDetailDoctorById = async (req, res) => {
+const updateDoctor = async (req, res) => {
   try {
-    let response = await doctorService.getDetailDoctorById(req.query.id);
-    return res.status(200).json(response);
+    const doctor = await doctorService.updateDoctor(req.params.id, req.body);
+    res.json({ errCode: 0, data: doctor });
   } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      message: "Error from server...",
-    });
-  }
-};
-
-let bulkCreateSchedule = async (req, res) => {
-  try {
-    let response = await doctorService.bulkCreateSchedule(req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
-  }
-};
-
-let getScheduleByDate = async (req, res) => {
-  try {
-    let response = await doctorService.getScheduleByDate(
-      req.query.doctorId,
-      req.query.date
-    );
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
-  }
-};
-
-let getExtraInfoDoctorById = async (req, res) => {
-  try {
-    let response = await doctorService.getExtraInfoDoctorById(
-      req.query.doctorId
-    );
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
-  }
-};
-
-let getProfileDoctorById = async (req, res) => {
-  try {
-    let response = await doctorService.getProfileDoctorById(req.query.doctorId);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
-  }
-};
-
-let getListPatientForDoctor = async (req, res) => {
-  try {
-    let response = await doctorService.getListPatientForDoctor(
-      req.query.doctorId,
-      req.query.date
-    );
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
-  }
-};
-
-let sendRemedy = async (req, res) => {
-  try {
-    let response = await doctorService.sendRemedy(req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error from server",
-    });
+    res.status(400).json({ errCode: 1, errMessage: e.message });
   }
 };
 
 module.exports = {
-  getTopDoctorHome,
-  getAllDoctors,
-  postInfoDoctor,
-  getDetailDoctorById,
-  bulkCreateSchedule,
-  getScheduleByDate,
-  getExtraInfoDoctorById,
-  getProfileDoctorById,
-  getListPatientForDoctor,
-  sendRemedy,
+  createDoctor,
+  getDoctors,
+  getDoctorById,
+  updateDoctor,
 };

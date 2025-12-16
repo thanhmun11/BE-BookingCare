@@ -1,49 +1,60 @@
 const specialtyService = require("../services/specialtyService");
 
-let createNewSpecialty = async (req, res) => {
+const createSpecialty = async (req, res) => {
   try {
-    let response = await specialtyService.createNewSpecialty(req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log("Error From Server - createNewSpecialty API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - createNewSpecialty API !",
-    });
+    const specialty = await specialtyService.createSpecialty(req.body);
+    return res.status(201).json({ success: true, data: specialty });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
-let getAllSpecialty = async (req, res) => {
+const getSpecialties = async (req, res) => {
   try {
-    let response = await specialtyService.getAllSpecialty();
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log("Error From Server - getAllSpecialty API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - getAllSpecialty API !",
-    });
+    const specialties = await specialtyService.getSpecialties();
+    return res.json({ success: true, data: specialties });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-let getDetailsSpecialtyById = async (req, res) => {
+const getSpecialtyById = async (req, res) => {
   try {
-    let response = await specialtyService.getDetailsSpecialtyById(
-      req.query.id,
-      req.query.location
+    const specialty = await specialtyService.getSpecialtyById(req.params.id);
+    return res.json({ success: true, data: specialty });
+  } catch (error) {
+    return res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+const updateSpecialty = async (req, res) => {
+  try {
+    const specialty = await specialtyService.updateSpecialty(
+      req.params.id,
+      req.body
     );
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log("Error From Server - getAllSpecialty API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - getAllSpecialty API !",
+    return res.json({ success: true, data: specialty });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const deleteSpecialty = async (req, res) => {
+  try {
+    await specialtyService.deleteSpecialty(req.params.id);
+    return res.json({
+      success: true,
+      message: "Specialty deleted successfully",
     });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
 module.exports = {
-  createNewSpecialty,
-  getAllSpecialty,
-  getDetailsSpecialtyById,
+  createSpecialty,
+  getSpecialties,
+  getSpecialtyById,
+  updateSpecialty,
+  deleteSpecialty,
 };

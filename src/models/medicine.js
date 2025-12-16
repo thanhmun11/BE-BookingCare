@@ -1,15 +1,17 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class Specialty extends Model {
+  class Medicine extends Model {
     static associate(models) {
-      Specialty.hasMany(models.Doctor, {
-        foreignKey: "specialtyId",
-        as: "doctors",
+      Medicine.hasMany(models.PrescriptionItem, {
+        foreignKey: "medicineId",
+        as: "prescriptionItems",
       });
     }
   }
-  Specialty.init(
+
+  Medicine.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -19,17 +21,20 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
       },
-      image: DataTypes.TEXT,
+      unit: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       description: DataTypes.TEXT,
     },
     {
       sequelize,
-      modelName: "Specialty",
-      tableName: "Specialties",
+      modelName: "Medicine",
+      tableName: "Medicines",
       timestamps: true,
     }
   );
-  return Specialty;
+
+  return Medicine;
 };

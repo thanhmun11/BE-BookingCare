@@ -1,88 +1,77 @@
 const db = require("../models/index");
 
-let createNewHandbook = (inputData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (
-        !inputData.name ||
-        !inputData.imageBase64 ||
-        !inputData.descriptionHTML ||
-        !inputData.descriptionMarkdown
-      ) {
-        resolve({
-          errCode: 1,
-          errMessage: "Missing Required Parameters - createNewHandbook !",
-        });
-      } else {
-        await db.HandBook.create({
-          name: inputData.name,
-          image: inputData.imageBase64,
-          descriptionHTML: inputData.descriptionHTML,
-          descriptionMarkdown: inputData.descriptionMarkdown,
-        });
+const createHandbook = async ({ title, content, doctorId }) => {
+  if (!title || !content || !doctorId) {
+    throw new Error("Missing required parameters");
+  }
 
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const doctor = await db.Doctor.findByPk(doctorId);
+  if (!doctor) {
+    throw new Error("Doctor not found");
+  }
+
+  return db.Handbook.create({
+    title,
+    content,
+    doctorId,
   });
 };
 
-let getAllHandbook = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let data = await db.HandBook.findAll();
-      if (data && data.length > 0) {
-        data.map((item) => {
-          item.image = Buffer.from(item.image, "base64").toString("binary");
-          return item;
-        });
-      }
-      resolve({
-        errCode: 0,
-        errMessage: "Successfully !",
-        data,
-      });
-    } catch (e) {
-      reject(e);
-    }
+const getHandbooks = async () => {
+  return db.Handbook.findAll({
+    include: [
+      {
+        model: db.Doctor,
+        as: "doctor",
+        attributes: ["id"], // name lấy từ User nếu có
+      },
+    ],
+    order: [["createdAt", "DESC"]],
   });
 };
 
-let getDetailsHandbookById = (handbookId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!handbookId) {
-        resolve({
-          errCode: 1,
-          errMessage:
-            "Missing Required Parameters - getDetailsHandbookById API",
-        });
-      } else {
-        let data = await db.HandBook.findOne({
-          where: { id: handbookId },
-        });
-        if (data) {
-          data.image = Buffer.from(data.image, "base64").toString("binary");
-        }
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-          data,
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+const getHandbookById = async (id) => {
+  if (!id) throw new Error("Missing handbook id");
+
+  const handbook = await db.Handbook.findByPk(id, {
+    include: [
+      {
+        model: db.Doctor,
+        as: "doctor",
+        attributes: ["id"],
+      },
+    ],
   });
+
+  if (!handbook) throw new Error("Handbook not found");
+
+  return handbook;
+};
+
+const updateHandbook = async (id, data) => {
+  if (!id) throw new Error("Missing handbook id");
+
+  const handbook = await db.Handbook.findByPk(id);
+  if (!handbook) throw new Error("Handbook not found");
+
+  await handbook.update(data);
+  return handbook;
+};
+
+const deleteHandbook = async (id) => {
+  if (!id) throw new Error("Missing handbook id");
+
+  const handbook = await db.Handbook.findByPk(id);
+  if (!handbook) throw new Error("Handbook not found");
+
+  await handbook.destroy();
+  return true;
 };
 
 module.exports = {
-  createNewHandbook,
-  getAllHandbook,
-  getDetailsHandbookById,
+  createHandbook,
+  getHandbooks,
+  getHandbookById,
+  updateHandbook,
+  deleteHandbook,
 };

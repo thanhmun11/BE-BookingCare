@@ -1,50 +1,44 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
-      User.belongsTo(models.Allcode, {
-        foreignKey: "positionId",
-        targetKey: "keyMap",
-        as: "positionData",
-      });
-      User.belongsTo(models.Allcode, {
-        foreignKey: "gender",
-        targetKey: "keyMap",
-        as: "genderData",
-      });
-      User.belongsTo(models.Allcode, {
-        foreignKey: "roleId",
-        targetKey: "keyMap",
-        as: "roleData",
-      });
-
-      User.hasOne(models.Markdown, { foreignKey: "doctorId" });
-      User.hasOne(models.Doctor_Info, { foreignKey: "doctorId" });
-      User.hasMany(models.Schedule, {
-        foreignKey: "doctorId",
-        as: "doctorData",
-      });
+      User.hasOne(models.Admin, { foreignKey: "id", as: "adminData" });
+      User.hasOne(models.Doctor, { foreignKey: "id", as: "doctorData" });
+      User.hasOne(models.Patient, { foreignKey: "id", as: "patientData" });
     }
   }
+
   User.init(
     {
-      email: DataTypes.STRING,
-      password: DataTypes.STRING,
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      fullName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       address: DataTypes.STRING,
+      birthday: DataTypes.DATE,
       phoneNumber: DataTypes.STRING,
+      image: DataTypes.TEXT,
       gender: DataTypes.STRING,
-      image: DataTypes.STRING,
-      roleId: DataTypes.STRING,
-      positionId: DataTypes.STRING,
+      role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
     {
       sequelize,

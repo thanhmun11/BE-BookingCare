@@ -1,23 +1,21 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class Booking extends Model {
+  class Bill extends Model {
     static associate(models) {
-      Booking.belongsTo(models.Patient, {
+      Bill.belongsTo(models.Patient, {
         foreignKey: "patientId",
         as: "patient",
       });
-      Booking.belongsTo(models.Schedule, {
-        foreignKey: "scheduleId",
-        as: "schedule",
-      });
-      Booking.hasOne(models.MedicalRecord, {
-        foreignKey: "bookingId",
+      Bill.belongsTo(models.MedicalRecord, {
+        foreignKey: "medicalRecordId",
         as: "medicalRecord",
       });
     }
   }
-  Booking.init(
+
+  Bill.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -28,33 +26,30 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      scheduleId: {
+      medicalRecordId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      total: {
+        type: DataTypes.FLOAT,
         allowNull: false,
       },
       status: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      queueNumber: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      reason: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      token: {
+      method: {
         type: DataTypes.STRING,
         allowNull: false,
       },
     },
     {
       sequelize,
-      modelName: "Booking",
-      tableName: "Bookings",
+      modelName: "Bill",
+      tableName: "Bills",
       timestamps: true,
     }
   );
-  return Booking;
+
+  return Bill;
 };

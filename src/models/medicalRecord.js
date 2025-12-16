@@ -1,23 +1,33 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class Booking extends Model {
+  class MedicalRecord extends Model {
     static associate(models) {
-      Booking.belongsTo(models.Patient, {
+      MedicalRecord.belongsTo(models.Patient, {
         foreignKey: "patientId",
         as: "patient",
       });
-      Booking.belongsTo(models.Schedule, {
-        foreignKey: "scheduleId",
-        as: "schedule",
+      MedicalRecord.belongsTo(models.Doctor, {
+        foreignKey: "doctorId",
+        as: "doctor",
       });
-      Booking.hasOne(models.MedicalRecord, {
+      MedicalRecord.belongsTo(models.Booking, {
         foreignKey: "bookingId",
-        as: "medicalRecord",
+        as: "booking",
+      });
+      MedicalRecord.hasOne(models.Prescription, {
+        foreignKey: "medicalRecordId",
+        as: "prescription",
+      });
+      MedicalRecord.hasOne(models.Bill, {
+        foreignKey: "medicalRecordId",
+        as: "bill",
       });
     }
   }
-  Booking.init(
+
+  MedicalRecord.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -28,33 +38,31 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      scheduleId: {
+      doctorId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      queueNumber: {
+      bookingId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      reason: {
+      diagnosis: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      token: {
+      conclusion: {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      note: DataTypes.TEXT,
     },
     {
       sequelize,
-      modelName: "Booking",
-      tableName: "Bookings",
+      modelName: "MedicalRecord",
+      tableName: "MedicalRecords",
       timestamps: true,
     }
   );
-  return Booking;
+
+  return MedicalRecord;
 };

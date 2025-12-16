@@ -1,60 +1,55 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class Booking extends Model {
+  class PrescriptionItem extends Model {
     static associate(models) {
-      Booking.belongsTo(models.Patient, {
-        foreignKey: "patientId",
-        as: "patient",
+      PrescriptionItem.belongsTo(models.Prescription, {
+        foreignKey: "prescriptionId",
+        as: "prescription",
       });
-      Booking.belongsTo(models.Schedule, {
-        foreignKey: "scheduleId",
-        as: "schedule",
-      });
-      Booking.hasOne(models.MedicalRecord, {
-        foreignKey: "bookingId",
-        as: "medicalRecord",
+      PrescriptionItem.belongsTo(models.Medicine, {
+        foreignKey: "medicineId",
+        as: "medicine",
       });
     }
   }
-  Booking.init(
+
+  PrescriptionItem.init(
     {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
-      patientId: {
+      prescriptionId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      scheduleId: {
+      medicineId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      queueNumber: {
+      quantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      reason: {
+      usage: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      token: {
-        type: DataTypes.STRING,
+      duration: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
     },
     {
       sequelize,
-      modelName: "Booking",
-      tableName: "Bookings",
+      modelName: "PrescriptionItem",
+      tableName: "PrescriptionItems",
       timestamps: true,
     }
   );
-  return Booking;
+
+  return PrescriptionItem;
 };

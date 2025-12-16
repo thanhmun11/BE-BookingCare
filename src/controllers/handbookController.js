@@ -1,48 +1,54 @@
-const handbookService = require('../services/handbookService');
+const handbookService = require("../services/handbookService");
 
-let createNewHandbook = async (req, res) => {
+const createHandbook = async (req, res) => {
   try {
-    let response = await handbookService.createNewHandbook(req.body);
-    return res.status(200).json(response);
+    const data = await handbookService.createHandbook(req.body);
+    return res.status(201).json(data);
   } catch (e) {
-    console.log('Error From Server - createNewHandbook API !', e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: 'Error From Server - createNewHandbook API !',
-    });
+    return res.status(400).json({ message: e.message });
   }
 };
 
-let getAllHandbook = async (req, res) => {
+const getHandbooks = async (req, res) => {
   try {
-    let response = await handbookService.getAllHandbook();
-    return res.status(200).json(response);
+    const data = await handbookService.getHandbooks();
+    return res.status(200).json(data);
   } catch (e) {
-    console.log('Error From Server - getAllHandbook API !', e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: 'Error From Server - getAllHandbook API !',
-    });
+    return res.status(500).json({ message: e.message });
   }
 };
 
-let getDetailsHandbookById = async (req, res) => {
+const getHandbookById = async (req, res) => {
   try {
-    let response = await handbookService.getDetailsHandbookById(
-      req.query.id,
-    );
-    return res.status(200).json(response);
+    const data = await handbookService.getHandbookById(req.params.id);
+    return res.status(200).json(data);
   } catch (e) {
-    console.log('Error From Server - getAllHandbook API !', e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: 'Error From Server - getAllHandbook API !',
-    });
+    return res.status(404).json({ message: e.message });
+  }
+};
+
+const updateHandbook = async (req, res) => {
+  try {
+    const data = await handbookService.updateHandbook(req.params.id, req.body);
+    return res.status(200).json(data);
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
+  }
+};
+
+const deleteHandbook = async (req, res) => {
+  try {
+    await handbookService.deleteHandbook(req.params.id);
+    return res.status(204).send();
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
   }
 };
 
 module.exports = {
-  createNewHandbook,
-  getAllHandbook,
-  getDetailsHandbookById,
+  createHandbook,
+  getHandbooks,
+  getHandbookById,
+  updateHandbook,
+  deleteHandbook,
 };

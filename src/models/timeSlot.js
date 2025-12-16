@@ -1,35 +1,43 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class Clinic extends Model {
+  class TimeSlot extends Model {
     static associate(models) {
-      Clinic.hasMany(models.Doctor, { foreignKey: "clinicId", as: "doctors" });
+      TimeSlot.hasMany(models.Schedule, {
+        foreignKey: "timeSlotId",
+        as: "schedules",
+      });
     }
   }
-  Clinic.init(
+
+  TimeSlot.init(
     {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
-      name: {
+      startTime: {
+        type: DataTypes.TIME,
+        allowNull: false,
+      },
+      endTime: {
+        type: DataTypes.TIME,
+        allowNull: false,
+      },
+      label: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      address: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      image: DataTypes.TEXT,
-      description: DataTypes.TEXT,
     },
     {
       sequelize,
-      modelName: "Clinic",
-      tableName: "Clinics",
+      modelName: "TimeSlot",
+      tableName: "TimeSlots",
       timestamps: true,
     }
   );
-  return Clinic;
+
+  return TimeSlot;
 };

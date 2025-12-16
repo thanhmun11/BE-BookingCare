@@ -1,104 +1,105 @@
 const db = require("../models/index");
 
-let createNewClinic = (inputData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (
-        !inputData.name ||
-        !inputData.address ||
-        !inputData.imageBase64 ||
-        !inputData.descriptionHTML ||
-        !inputData.descriptionMarkdown
-      ) {
-        resolve({
-          errCode: 1,
-          errMessage: "Missing Required Parameters - createNewClinic !",
-        });
-      } else {
-        await db.Clinic.create({
-          name: inputData.name,
-          image: inputData.imageBase64,
-          address: inputData.address,
-          descriptionHTML: inputData.descriptionHTML,
-          descriptionMarkdown: inputData.descriptionMarkdown,
-        });
+const createClinic = async ({ name, address, image, description }) => {
+  if (!name || !address) {
+    throw new Error("Missing required parameters");
+  }
 
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const existed = await db.Clinic.findOne({
+    where: {
+      name,
+      address,
+    },
+  });
+  if (existed) {
+    throw new Error("Clinic already exists");
+  }
+
+  return db.Clinic.create({
+    name,
+    address,
+    image,
+    description,
   });
 };
 
-let getAllClinic = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let data = await db.Clinic.findAll();
-      if (data && data.length > 0) {
-        data.map((item) => {
-          item.image = Buffer.from(item.image, "base64").toString("binary");
-          return item;
-        });
-      }
-      resolve({
-        errCode: 0,
-        errMessage: "Successfully !",
-        data,
-      });
-    } catch (e) {
-      reject(e);
-    }
+const getClinics = async () => {
+  return db.Clinic.findAll({
+    order: [["name", "ASC"]],
   });
 };
 
-let getDetailsClinicById = (inputId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!inputId) {
-        resolve({
-          errCode: 1,
-          errMessage: "Missing Required Parameters - getDetailsClinicById API",
-        });
-      } else {
-        let data = await db.Clinic.findOne({
-          where: { id: inputId },
-          attributes: [
-            "descriptionHTML",
-            "descriptionMarkdown",
-            "address",
-            "name",
-          ],
-        });
+const getClinicById = async (id) => {
+  if (!id) throw new Error("Missing clinic id");
 
-        if (data) {
-          let doctorClinic = [];
-
-          doctorClinic = await db.Doctor_Info.findAll({
-            where: { clinicId: inputId },
-            attributes: ["doctorId", "provinceId"],
-          });
-          data.doctorClinic = doctorClinic;
-        } else {
-          data = {};
-        }
-        resolve({
-          errCode: 0,
-          errMessage: "Successfully !",
-          data,
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const clinic = await db.Clinic.findByPk(id, {
+    include: [
+      {
+        model: db.Doctor,
+        as: "doctors",
+        attributes: ["id"],
+      },
+    ],
   });
+
+  if (!clinic) throw new Error("Clinic not found");
+
+  return clinic;
+};
+
+const updateClinic = async (id, data) => {
+  if (!id) throw new Error("Missing clinic id");
+
+  const clinic = await db.Clinic.findByPk(id);
+  if (!clinic) {
+    throw new Error("Clinic not found");
+  }
+
+  if (
+    (data.name && data.name !== clinic.name) ||
+    (data.address && data.address !== clinic.address)
+  ) {
+    const existed = await db.Clinic.findOne({
+      where: {
+        name: data.name || clinic.name,
+        address: data.address || clinic.address,
+      },
+    });
+
+    if (existed && existed.id !== clinic.id) {
+      throw new Error("Clinic with same name and address already exists");
+    }
+  }
+
+  await clinic.update(data);
+  return clinic;
+};
+
+const deleteClinic = async (id) => {
+  if (!id) throw new Error("Missing clinic id");
+
+  const clinic = await db.Clinic.findByPk(id);
+  if (!clinic) {
+    throw new Error("Clinic not found");
+  }
+
+  // Không cho xoá nếu còn doctor
+  const doctorCount = await db.Doctor.count({
+    where: { clinicId: id },
+  });
+
+  if (doctorCount > 0) {
+    throw new Error("Cannot delete clinic with existing doctors");
+  }
+
+  await clinic.destroy();
+  return true;
 };
 
 module.exports = {
-  createNewClinic,
-  getAllClinic,
-  getDetailsClinicById,
+  createClinic,
+  getClinics,
+  getClinicById,
+  updateClinic,
+  deleteClinic,
 };

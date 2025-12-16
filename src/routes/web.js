@@ -6,6 +6,14 @@ import specialtyController from "../controllers/specialtyController";
 import clinicController from "../controllers/clinicController";
 import handbookController from "../controllers/handbookController";
 import chatController from "../controllers/chatController.js";
+import medicineController from "../controllers/medicineController.js";
+import bookingController from "../controllers/bookingController.js";
+import scheduleController from "../controllers/scheduleController.js";
+import timeSlotController from "../controllers/timeSlotController.js";
+import prescriptionController from "../controllers/prescriptionController.js";
+import medicalRecordController from "../controllers/medicalRecordController.js";
+import billController from "../controllers/billController.js";
+import statisticController from "../controllers/statisticController.js";
 
 let router = express.Router();
 
@@ -14,40 +22,16 @@ let initWebRoutes = (app) => {
     return res.send("Hello World!");
   });
 
-  router.post("/api/login", userController.handleLogin);
-  router.get("/api/get-all-users", userController.handleGetAllUsers);
-  router.post("/api/create-new-user", userController.handleCreateNewUser);
-  router.put("/api/edit-user", userController.handleEditUser);
-  router.delete("/api/delete-user", userController.handleDeleteUser);
-
-  router.get("/api/allcode", userController.getAllCode);
+  // user (auth + management)
+  router.post("/api/users/register", userController.registerUser);
+  router.post("/api/users/login", userController.loginUser);
+  router.get("/api/users/profile", userController.getUserProfile);
 
   // doctor
-  router.get("/api/top-doctor-home", doctorController.getTopDoctorHome);
-  router.get("/api/get-all-doctors", doctorController.getAllDoctors);
-  router.post("/api/save-Info-doctor", doctorController.postInfoDoctor);
-  router.get(
-    "/api/get-detail-doctor-by-id",
-    doctorController.getDetailDoctorById
-  );
-  router.post("/api/bulk-create-schedule", doctorController.bulkCreateSchedule);
-  router.get(
-    "/api/get-schedule-doctor-by-date",
-    doctorController.getScheduleByDate
-  );
-  router.get(
-    "/api/get-extra-Info-doctor-by-id",
-    doctorController.getExtraInfoDoctorById
-  );
-  router.get(
-    "/api/get-profile-doctor-by-id",
-    doctorController.getProfileDoctorById
-  );
-  router.get(
-    "/api/get-list-patient-for-doctor",
-    doctorController.getListPatientForDoctor
-  );
-  router.post("/api/send-remedy", doctorController.sendRemedy);
+  router.post("/api/doctors", doctorController.createDoctor);
+  router.patch("/api/doctors/:id", doctorController.updateDoctor);
+  router.get("/api/doctors", doctorController.getDoctors);
+  router.get("/api/doctors/:id", doctorController.getDoctorById);
 
   // patient
   router.post(
@@ -60,30 +44,70 @@ let initWebRoutes = (app) => {
   );
 
   // specialty
-  router.post(
-    "/api/create-new-specialty",
-    specialtyController.createNewSpecialty
-  );
-  router.get("/api/get-all-specialty", specialtyController.getAllSpecialty);
-  router.get(
-    "/api/get-detail-specialty-by-id",
-    specialtyController.getDetailsSpecialtyById
-  );
+  router.post("/api/specialties", specialtyController.createSpecialty);
+  router.get("/api/specialties", specialtyController.getSpecialties);
+  router.get("/api/specialties/:id", specialtyController.getSpecialtyById);
+  router.patch("/api/specialties/:id", specialtyController.updateSpecialty);
+  router.delete("/api/specialties/:id", specialtyController.deleteSpecialty);
 
   // clinic
-  router.post("/api/create-new-clinic", clinicController.createNewClinic);
-  router.get("/api/get-all-clinic", clinicController.getAllClinic);
-  router.get(
-    "/api/get-detail-clinic-by-id",
-    clinicController.getDetailsClinicById
-  );
+  router.post("/api/clinics", clinicController.createClinic);
+  router.get("/api/clinics", clinicController.getClinics);
+  router.get("/api/clinics/:id", clinicController.getClinicById);
+  router.patch("/api/clinics/:id", clinicController.updateClinic);
+  router.delete("/api/clinics/:id", clinicController.deleteClinic);
 
   // handbook
-  router.post("/api/create-new-handbook", handbookController.createNewHandbook);
-  router.get("/api/get-all-handbook", handbookController.getAllHandbook);
+  router.post("/api/handbooks", handbookController.createHandbook);
+  router.get("/api/handbooks", handbookController.getHandbooks);
+  router.get("/api/handbooks/:id", handbookController.getHandbookById);
+  router.patch("/api/handbooks/:id", handbookController.updateHandbook);
+  router.delete("/api/handbooks/:id", handbookController.deleteHandbook);
+
+  // medicine
+  router.post("/api/medicines", medicineController.createMedicine);
+  router.get("/api/medicines", medicineController.getMedicines);
+  router.get("/api/medicines/:id", medicineController.getMedicineById);
+  router.patch("/api/medicines/:id", medicineController.updateMedicine);
+  router.delete("/api/medicines/:id", medicineController.deleteMedicine);
+
+  // timeslot
+  router.post("/api/time-slots", timeSlotController.createTimeSlot);
+  router.get("/api/time-slots", timeSlotController.getTimeSlots);
+  router.get("/api/time-slots/:id", timeSlotController.getTimeSlotById);
+  router.patch("/api/time-slots/:id", timeSlotController.updateTimeSlot);
+  router.delete("/api/time-slots/:id", timeSlotController.deleteTimeSlot);
+
+  // schedule
+  router.post("/api/schedules", scheduleController.createSchedule);
+  router.post("/api/schedules/bulk", scheduleController.createScheduleBulk);
+  router.get("/api/schedules", scheduleController.getSchedules);
+  router.patch("/api/schedules/:id", scheduleController.updateSchedule);
+
+  // booking
+  router.post("/api/bookings", bookingController.createBooking);
+  router.patch("/api/bookings/:id/confirm", bookingController.confirmBooking);
+  router.patch("/api/bookings/:id/cancel", bookingController.cancelBooking);
+  router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
+  router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
+
+  // medical record
+  router.post(
+    "/api/medical-records",
+    medicalRecordController.createMedicalRecord
+  );
+
+  // prescription
+  router.post("/api/prescriptions", prescriptionController.createPrescription);
+
+  // bill
+  router.post("/api/bills", billController.createBill);
+  router.patch("/api/bills/pay", billController.payBill);
+
+  // statistic
   router.get(
-    "/api/get-detail-handbook-by-id",
-    handbookController.getDetailsHandbookById
+    "/api/statistics/revenue-by-date",
+    statisticController.getRevenueByDate
   );
 
   // chat

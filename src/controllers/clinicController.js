@@ -1,46 +1,54 @@
 const clinicService = require("../services/clinicService");
 
-let createNewClinic = async (req, res) => {
+const createClinic = async (req, res) => {
   try {
-    let response = await clinicService.createNewClinic(req.body);
-    return res.status(200).json(response);
+    const data = await clinicService.createClinic(req.body);
+    return res.status(201).json(data);
   } catch (e) {
-    console.log("Error From Server - createNewClinic API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - createNewClinic API !",
-    });
+    return res.status(400).json({ message: e.message });
   }
 };
 
-let getAllClinic = async (req, res) => {
+const getClinics = async (req, res) => {
   try {
-    let response = await clinicService.getAllClinic();
-    return res.status(200).json(response);
+    const data = await clinicService.getClinics();
+    return res.status(200).json(data);
   } catch (e) {
-    console.log("Error From Server - getAllClinic API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - getAllClinic API !",
-    });
+    return res.status(500).json({ message: e.message });
   }
 };
 
-let getDetailsClinicById = async (req, res) => {
+const getClinicById = async (req, res) => {
   try {
-    let response = await clinicService.getDetailsClinicById(req.query.id);
-    return res.status(200).json(response);
+    const data = await clinicService.getClinicById(req.params.id);
+    return res.status(200).json(data);
   } catch (e) {
-    console.log("Error From Server - getAllSpecialty API !", e);
-    return res.status(200).json({
-      errCode: -1,
-      errMessage: "Error From Server - getAllSpecialty API !",
-    });
+    return res.status(404).json({ message: e.message });
+  }
+};
+
+const updateClinic = async (req, res) => {
+  try {
+    const data = await clinicService.updateClinic(req.params.id, req.body);
+    return res.status(200).json(data);
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
+  }
+};
+
+const deleteClinic = async (req, res) => {
+  try {
+    await clinicService.deleteClinic(req.params.id);
+    return res.status(204).send();
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
   }
 };
 
 module.exports = {
-  createNewClinic,
-  getAllClinic,
-  getDetailsClinicById,
+  createClinic,
+  getClinics,
+  getClinicById,
+  updateClinic,
+  deleteClinic,
 };
