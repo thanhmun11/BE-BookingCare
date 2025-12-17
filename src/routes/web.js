@@ -1,11 +1,9 @@
 import express from "express";
 import userController from "../controllers/userController.js";
 import doctorController from "../controllers/doctorController.js";
-import patientController from "../controllers/patientController";
 import specialtyController from "../controllers/specialtyController";
 import clinicController from "../controllers/clinicController";
 import handbookController from "../controllers/handbookController";
-import chatController from "../controllers/chatController.js";
 import medicineController from "../controllers/medicineController.js";
 import bookingController from "../controllers/bookingController.js";
 import scheduleController from "../controllers/scheduleController.js";
@@ -32,16 +30,6 @@ let initWebRoutes = (app) => {
   router.patch("/api/doctors/:id", doctorController.updateDoctor);
   router.get("/api/doctors", doctorController.getDoctors);
   router.get("/api/doctors/:id", doctorController.getDoctorById);
-
-  // patient
-  router.post(
-    "/api/patient-book-appointment",
-    patientController.postBookAppointment
-  );
-  router.post(
-    "/api/verify-book-appointment",
-    patientController.postVerifyBookAppointment
-  );
 
   // specialty
   router.post("/api/specialties", specialtyController.createSpecialty);
@@ -109,9 +97,6 @@ let initWebRoutes = (app) => {
     "/api/statistics/revenue-by-date",
     statisticController.getRevenueByDate
   );
-
-  // chat
-  router.post("/api/chat-booking", chatController.chatBooking);
 
   return app.use("/", router);
 };
