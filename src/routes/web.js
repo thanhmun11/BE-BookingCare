@@ -24,6 +24,10 @@ let initWebRoutes = (app) => {
   router.post("/api/users/register", userController.registerUser);
   router.post("/api/users/login", userController.loginUser);
   router.get("/api/users/profile", userController.getUserProfile);
+  router.post("/api/users/create", userController.createUser); // Admin tạo user với role tùy chỉnh
+  router.get("/api/users", userController.getAllUsers); // Lấy danh sách users
+  router.delete("/api/users/:id", userController.deleteUser); // Xóa user
+  router.put("/api/users/:id", userController.updateUser); // Cập nhật user
 
   // doctor
   router.post("/api/doctors", doctorController.createDoctor);
