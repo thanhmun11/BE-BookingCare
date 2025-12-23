@@ -1,6 +1,6 @@
 const db = require("../models/index");
 
-const createHandbook = async ({ title, content, doctorId }) => {
+const createHandbook = async ({ title, content, image, doctorId }) => {
   if (!title || !content || !doctorId) {
     throw new Error("Missing required parameters");
   }
@@ -13,6 +13,7 @@ const createHandbook = async ({ title, content, doctorId }) => {
   return db.Handbook.create({
     title,
     content,
+    image: image || null,
     doctorId,
   });
 };
@@ -54,7 +55,14 @@ const updateHandbook = async (id, data) => {
   const handbook = await db.Handbook.findByPk(id);
   if (!handbook) throw new Error("Handbook not found");
 
-  await handbook.update(data);
+  const payload = {
+    title: data.title ?? handbook.title,
+    content: data.content ?? handbook.content,
+    image: data.image ?? handbook.image,
+    doctorId: data.doctorId ?? handbook.doctorId,
+  };
+
+  await handbook.update(payload);
   return handbook;
 };
 

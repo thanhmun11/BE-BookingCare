@@ -2,6 +2,17 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
+// Format date in Vietnamese: "Ngày dd/MM/yyyy" with VN timezone
+const formatDateVi = (dateInput) => {
+  if (!dateInput) return "";
+  const date = new Date(dateInput);
+  const formatted = date.toLocaleDateString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+  return `Ngày ${formatted}`;
+};
+
+
 const sendBookingEmail = async ({
   email,
   patientName,
@@ -14,6 +25,10 @@ const sendBookingEmail = async ({
     throw new Error("Missing email or token");
   }
 
+  console.log("Sending booking email to:", email, {
+    workDate,
+    timeLabel,
+  });
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -24,8 +39,15 @@ const sendBookingEmail = async ({
     },
   });
 
-  const confirmLink = `${process.env.FRONTEND_URL}/confirm-booking?token=${token}`;
-  const cancelLink = `${process.env.FRONTEND_URL}/cancel-booking?token=${token}`;
+  const appUrl = process.env.URL_REACT;
+  if (!appUrl) {
+    throw new Error("Missing URL_REACT in environment");
+  }
+  const encodedToken = encodeURIComponent(token);
+  const confirmLink = `${appUrl}/confirm-booking?token=${encodedToken}`;
+  const cancelLink = `${appUrl}/cancel-booking?token=${encodedToken}`;
+
+  const formattedDate = formatDateVi(workDate);
 
   const mailOptions = {
     from: `"Booking Care" <${process.env.EMAIL_APP}>`,
@@ -36,15 +58,15 @@ const sendBookingEmail = async ({
       <p>Bạn đã đặt lịch khám với thông tin sau:</p>
       <ul>
         <li><b>Bác sĩ:</b> ${doctorName}</li>
-        <li><b>Ngày khám:</b> ${workDate}</li>
+        <li><b>Ngày khám:</b> ${formattedDate}</li>
         <li><b>Khung giờ:</b> ${timeLabel}</li>
       </ul>
       <p>Vui lòng xác nhận lịch hẹn:</p>
       <p>
-        <a href="${confirmLink}">✅ Xác nhận lịch khám</a>
+        <a href="${confirmLink}" target="_blank" rel="noopener noreferrer">✅ Xác nhận lịch khám</a>
       </p>
       <p>
-        <a href="${cancelLink}">❌ Huỷ lịch khám</a>
+        <a href="${cancelLink}" target="_blank" rel="noopener noreferrer">❌ Huỷ lịch khám</a>
       </p>
       <p><i>Nếu bạn không xác nhận, lịch sẽ tự động huỷ.</i></p>
     `,

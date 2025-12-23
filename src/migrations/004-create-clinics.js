@@ -11,7 +11,7 @@ module.exports = {
       },
       name: { type: Sequelize.STRING, allowNull: false },
       address: { type: Sequelize.STRING, allowNull: false },
-      image: { type: Sequelize.TEXT, allowNull: true },
+      image: { type: Sequelize.TEXT("long"), allowNull: true },
       description: { type: Sequelize.TEXT, allowNull: true },
       createdAt: {
         allowNull: false,

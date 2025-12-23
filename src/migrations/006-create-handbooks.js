@@ -10,6 +10,7 @@ module.exports = {
         allowNull: false,
       },
       title: { type: Sequelize.STRING, allowNull: false },
+      image: { type: Sequelize.TEXT("long"), allowNull: true },
       content: { type: Sequelize.TEXT, allowNull: false },
       doctorId: {
         type: Sequelize.INTEGER,

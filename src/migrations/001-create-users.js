@@ -15,7 +15,7 @@ module.exports = {
       address: { type: Sequelize.STRING, allowNull: true },
       birthday: { type: Sequelize.DATE, allowNull: true },
       phoneNumber: { type: Sequelize.STRING, allowNull: true },
-      image: { type: Sequelize.TEXT, allowNull: true },
+      image: { type: Sequelize.TEXT("long"), allowNull: true },
       gender: { type: Sequelize.STRING, allowNull: true },
       role: { type: Sequelize.STRING, allowNull: false },
       createdAt: {

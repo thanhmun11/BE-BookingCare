@@ -11,15 +11,36 @@ const createDoctor = async ({ id, clinicId, specialtyId, title, fee, bio }) => {
   return db.Doctor.create({ id, clinicId, specialtyId, title, fee, bio });
 };
 
-const getDoctors = async ({ clinicId, specialtyId }) => {
+const getDoctors = async ({ clinicId, specialtyId, lean }) => {
   const where = {};
   if (clinicId) where.clinicId = clinicId;
   if (specialtyId) where.specialtyId = specialtyId;
 
+  const isLean = String(lean).toLowerCase() === "true";
+
+  if (isLean) {
+    return db.Doctor.findAll({
+      where,
+      attributes: ["id", "clinicId", "specialtyId", "fee", "title"],
+      include: [
+        {
+          model: db.User,
+          as: "user",
+          attributes: ["fullName"],
+        },
+      ],
+      order: [["id", "ASC"]],
+    });
+  }
+
   return db.Doctor.findAll({
     where,
     include: [
-      { model: db.User, as: "user", attributes: ["fullName", "email"] },
+      {
+        model: db.User,
+        as: "user",
+        attributes: ["fullName", "email", "image", "gender"],
+      },
       { model: db.Clinic, as: "clinic" },
       { model: db.Specialty, as: "specialty" },
     ],
@@ -31,10 +52,35 @@ const getDoctorById = async (id) => {
 
   const doctor = await db.Doctor.findByPk(id, {
     include: [
-      { model: db.User, as: "user", attributes: ["fullName", "email"] },
-      { model: db.Clinic, as: "clinic" },
-      { model: db.Specialty, as: "specialty" },
+      {
+        model: db.User,
+        as: "user",
+        attributes: ["id", "fullName", "email", "image", "gender"],
+      },
+      { 
+        model: db.Clinic, 
+        as: "clinic",
+        attributes: ["id", "name", "address", "image", "description"]
+      },
+      { 
+        model: db.Specialty, 
+        as: "specialty",
+        attributes: ["id", "name", "description", "image"]
+      },
       { model: db.Handbook, as: "handbooks" },
+      {
+        model: db.Schedule,
+        as: "schedules",
+        include: [
+          {
+            model: db.TimeSlot,
+            as: "timeSlot",
+            attributes: ["id", "startTime", "endTime"]
+          }
+        ],
+        attributes: ["id", "workDate", "maxPatient", "timeSlotId"],
+        order: [["workDate", "ASC"]]
+      }
     ],
   });
 

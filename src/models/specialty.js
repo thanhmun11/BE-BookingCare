@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
       },
-      image: DataTypes.TEXT,
+      image: DataTypes.TEXT("long"),
       description: DataTypes.TEXT,
     },
     {

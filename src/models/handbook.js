@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      image: {
+        type: DataTypes.TEXT("long"),
+        allowNull: true,
+      },
       doctorId: {
         type: DataTypes.INTEGER,
         allowNull: false,
