@@ -51,6 +51,15 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const getAllDoctors = async (req, res) => {
+  try {
+    const users = await userService.getAllDoctors();
+    res.status(200).json({ errCode: 0, data: users });
+  } catch (err) {
+    res.status(400).json({ errCode: 1, message: err.message });
+  }
+};
+
 const deleteUser = async (req, res) => {
   try {
     await userService.deleteUser(req.params.id);
@@ -63,7 +72,9 @@ const deleteUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const user = await userService.updateUser(req.params.id, req.body);
-    res.status(200).json({ errCode: 0, message: "User updated successfully", data: user });
+    res
+      .status(200)
+      .json({ errCode: 0, message: "User updated successfully", data: user });
   } catch (err) {
     res.status(400).json({ errCode: 1, message: err.message });
   }
@@ -77,4 +88,5 @@ module.exports = {
   getAllUsers,
   deleteUser,
   updateUser,
+  getAllDoctors,
 };

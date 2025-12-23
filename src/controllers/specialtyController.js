@@ -12,9 +12,9 @@ const createSpecialty = async (req, res) => {
 const getSpecialties = async (req, res) => {
   try {
     const specialties = await specialtyService.getSpecialties();
-    return res.json({ success: true, data: specialties });
+    return res.json({ errCode: 0, data: specialties });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ errCode: 1, message: error.message });
   }
 };
 

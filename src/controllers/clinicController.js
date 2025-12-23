@@ -12,9 +12,9 @@ const createClinic = async (req, res) => {
 const getClinics = async (req, res) => {
   try {
     const data = await clinicService.getClinics();
-    return res.status(200).json(data);
+    return res.status(200).json({ errCode: 0, data });
   } catch (e) {
-    return res.status(500).json({ message: e.message });
+    return res.status(500).json({ errCode: 1, message: e.message });
   }
 };
 

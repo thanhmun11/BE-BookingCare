@@ -40,7 +40,6 @@ const createScheduleBulk = async ({
     !doctorId ||
     !workDate ||
     !Array.isArray(timeSlotIds) ||
-    timeSlotIds.length === 0 ||
     !maxPatient
   ) {
     throw new Error("Missing required parameters");
@@ -52,7 +51,31 @@ const createScheduleBulk = async ({
     throw new Error("Doctor not found");
   }
 
-  /* ========= 3. Check TimeSlot tồn tại ========= */
+  /* ========= 3. LUÔN XÓA HẾT LỊCH CŨ CỦA NGÀY ĐÓ (Ghi đè) ========= */
+  await db.Schedule.destroy({
+    where: {
+      doctorId,
+      [db.Sequelize.Op.and]: [
+        db.Sequelize.where(
+          db.Sequelize.fn('DATE', db.Sequelize.col('workDate')),
+          '=',
+          workDate
+        ),
+      ],
+    },
+    individualHooks: true,
+  });
+
+  /* ========= 4. Nếu timeSlotIds rỗng → chỉ xóa, không tạo mới ========= */
+  if (timeSlotIds.length === 0) {
+    return {
+      createdCount: 0,
+      schedules: [],
+      message: "All schedules deleted for this date",
+    };
+  }
+
+  /* ========= 5. Check TimeSlot tồn tại ========= */
   const timeSlots = await db.TimeSlot.findAll({
     where: {
       id: { [Op.in]: timeSlotIds },
@@ -63,32 +86,8 @@ const createScheduleBulk = async ({
     throw new Error("One or more TimeSlots not found");
   }
 
-  /* ========= 4. Lấy lịch đã tồn tại trong ngày ========= */
-  const existedSchedules = await db.Schedule.findAll({
-    where: {
-      doctorId,
-      workDate,
-      timeSlotId: { [Op.in]: timeSlotIds },
-    },
-    attributes: ["timeSlotId"],
-  });
-
-  // Các slot đã có lịch
-  const existedSlotIds = existedSchedules.map(
-    (schedule) => schedule.timeSlotId
-  );
-
-  /* ========= 5. Lọc ra slot CHƯA có lịch ========= */
-  const newSlotIds = timeSlotIds.filter(
-    (slotId) => !existedSlotIds.includes(slotId)
-  );
-
-  if (newSlotIds.length === 0) {
-    throw new Error("All selected time slots already have schedules");
-  }
-
   /* ========= 6. Chuẩn bị data để tạo ========= */
-  const schedulesToCreate = newSlotIds.map((slotId) => ({
+  const schedulesToCreate = timeSlotIds.map((slotId) => ({
     doctorId,
     workDate,
     timeSlotId: slotId,
@@ -101,8 +100,6 @@ const createScheduleBulk = async ({
   /* ========= 8. Trả kết quả ========= */
   return {
     createdCount: createdSchedules.length,
-    skippedCount: existedSlotIds.length,
-    skippedSlotIds: existedSlotIds,
     schedules: createdSchedules,
   };
 };
@@ -110,8 +107,18 @@ const createScheduleBulk = async ({
 // Lấy danh sách lịch theo filter
 const getSchedules = async (filters) => {
   const where = {};
-  if (filters.doctorId) where.doctorId = filters.doctorId;
-  if (filters.workDate) where.workDate = filters.workDate;
+  if (filters.doctorId) where.doctorId = parseInt(filters.doctorId);
+  
+  // Convert workDate string (YYYY-MM-DD) to DATE for comparison
+  if (filters.workDate) {
+    where[db.Sequelize.Op.and] = [
+      db.Sequelize.where(
+        db.Sequelize.fn('DATE', db.Sequelize.col('Schedule.workDate')),
+        '=',
+        filters.workDate
+      ),
+    ];
+  }
 
   return db.Schedule.findAll({
     where,

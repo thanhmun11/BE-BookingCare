@@ -12,7 +12,7 @@ import prescriptionController from "../controllers/prescriptionController.js";
 import medicalRecordController from "../controllers/medicalRecordController.js";
 import billController from "../controllers/billController.js";
 import statisticController from "../controllers/statisticController.js";
-
+import chatController from "../controllers/chatController.js";
 let router = express.Router();
 
 let initWebRoutes = (app) => {
@@ -26,6 +26,7 @@ let initWebRoutes = (app) => {
   router.get("/api/users/profile", userController.getUserProfile);
   router.post("/api/users/create", userController.createUser); // Admin tạo user với role tùy chỉnh
   router.get("/api/users", userController.getAllUsers); // Lấy danh sách users
+  router.get("/api/users/getAllDoctors", userController.getAllDoctors); // Lấy danh sách doctors
   router.delete("/api/users/:id", userController.deleteUser); // Xóa user
   router.put("/api/users/:id", userController.updateUser); // Cập nhật user
 
@@ -82,6 +83,16 @@ let initWebRoutes = (app) => {
   router.patch("/api/bookings/:id/cancel", bookingController.cancelBooking);
   router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
   router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
+  // patient booking history + cancel (compat with FE)
+  router.get("/api/get-patient-booking-history", bookingController.getBookings);
+  router.post(
+    "/api/cancel-patient-booking",
+    bookingController.cancelPatientBooking
+  );
+
+  // doctor booking management
+  router.get("/api/doctor/bookings", bookingController.getDoctorBookings);
+  router.get("/api/doctor/bookings/:id", bookingController.getBookingDetails);
 
   // medical record
   router.post(
@@ -101,6 +112,17 @@ let initWebRoutes = (app) => {
     "/api/statistics/revenue-by-date",
     statisticController.getRevenueByDate
   );
+  router.get("/api/statistics/dashboard", statisticController.getDashboardKPI);
+  router.get("/api/statistics/time-series", statisticController.getTimeSeries);
+  router.get("/api/statistics/doctors", statisticController.getTopDoctors);
+  router.get("/api/statistics/clinics", statisticController.getClinicsStats);
+  router.get(
+    "/api/statistics/specialties",
+    statisticController.getSpecialtiesStats
+  );
+
+  // chat
+  router.post("/api/chat-booking", chatController.chatBooking);
 
   return app.use("/", router);
 };

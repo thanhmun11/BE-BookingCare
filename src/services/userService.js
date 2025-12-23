@@ -152,12 +152,20 @@ const updateUser = async (userId, updateData) => {
     updateData.password = await bcrypt.hash(updateData.password, SALT_ROUNDS);
   }
 
-  // Không cho phép thay đổi email và role
+  // Không cho phép thay đổi email
   delete updateData.email;
-  delete updateData.role;
 
   await user.update(updateData);
   return user;
+};
+
+// Lấy danh sách tất cả doctors (users có role DOCTOR)
+const getAllDoctors = async () => {
+  const doctors = await db.User.findAll({
+    where: { role: "DOCTOR" },
+    attributes: { exclude: ["password"] },
+  });
+  return doctors;
 };
 
 module.exports = {
@@ -168,4 +176,5 @@ module.exports = {
   getAllUsers,
   deleteUser,
   updateUser,
+  getAllDoctors,
 };
