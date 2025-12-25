@@ -31,68 +31,63 @@ let initWebRoutes = (app) => {
   router.put("/api/users/:id", userController.updateUser); // Cập nhật user
 
   // doctor
-  router.post("/api/doctors", doctorController.createDoctor);
-  router.patch("/api/doctors/:id", doctorController.updateDoctor);
-  router.get("/api/doctors", doctorController.getDoctors);
-  router.get("/api/doctors/:id", doctorController.getDoctorById);
+  router.post("/api/doctors", doctorController.createDoctor); // tạo doctor
+  router.patch("/api/doctors/:id", doctorController.updateDoctor); // cập nhật doctor
+  router.get("/api/doctors", doctorController.getDoctors); // lấy danh sách doctors
+  router.get("/api/doctors/:id", doctorController.getDoctorById); // lấy doctor by id
 
   // specialty
-  router.post("/api/specialties", specialtyController.createSpecialty);
-  router.get("/api/specialties", specialtyController.getSpecialties);
-  router.get("/api/specialties/:id", specialtyController.getSpecialtyById);
-  router.patch("/api/specialties/:id", specialtyController.updateSpecialty);
-  router.delete("/api/specialties/:id", specialtyController.deleteSpecialty);
+  router.post("/api/specialties", specialtyController.createSpecialty); // tạo specialty
+  router.get("/api/specialties", specialtyController.getSpecialties); // lấy danh sách specialties
+  router.get("/api/specialties/:id", specialtyController.getSpecialtyById); // lấy specialty by id
+  router.patch("/api/specialties/:id", specialtyController.updateSpecialty); // cập nhật specialty
+  router.delete("/api/specialties/:id", specialtyController.deleteSpecialty); // xóa specialty
 
   // clinic
-  router.post("/api/clinics", clinicController.createClinic);
-  router.get("/api/clinics", clinicController.getClinics);
-  router.get("/api/clinics/:id", clinicController.getClinicById);
-  router.patch("/api/clinics/:id", clinicController.updateClinic);
-  router.delete("/api/clinics/:id", clinicController.deleteClinic);
+  router.post("/api/clinics", clinicController.createClinic); // tạo clinic
+  router.get("/api/clinics", clinicController.getClinics); // lấy danh sách clinics
+  router.get("/api/clinics/:id", clinicController.getClinicById); // lấy clinic by id
+  router.patch("/api/clinics/:id", clinicController.updateClinic); // cập nhật clinic
+  router.delete("/api/clinics/:id", clinicController.deleteClinic); // xóa clinic
 
   // handbook
-  router.post("/api/handbooks", handbookController.createHandbook);
-  router.get("/api/handbooks", handbookController.getHandbooks);
-  router.get("/api/handbooks/:id", handbookController.getHandbookById);
-  router.patch("/api/handbooks/:id", handbookController.updateHandbook);
-  router.delete("/api/handbooks/:id", handbookController.deleteHandbook);
+  router.post("/api/handbooks", handbookController.createHandbook); // tạo handbook
+  router.get("/api/handbooks", handbookController.getHandbooks); // lấy danh sách handbooks
+  router.get("/api/handbooks/:id", handbookController.getHandbookById); // lấy handbook by id
+  router.patch("/api/handbooks/:id", handbookController.updateHandbook); // cập nhật handbook
+  router.delete("/api/handbooks/:id", handbookController.deleteHandbook); // xóa handbook
 
   // medicine
-  router.post("/api/medicines", medicineController.createMedicine);
-  router.get("/api/medicines", medicineController.getMedicines);
-  router.get("/api/medicines/:id", medicineController.getMedicineById);
-  router.patch("/api/medicines/:id", medicineController.updateMedicine);
-  router.delete("/api/medicines/:id", medicineController.deleteMedicine);
+  router.post("/api/medicines", medicineController.createMedicine); // tạo medicine
+  router.get("/api/medicines", medicineController.getMedicines); // lấy danh sách medicines
+  router.get("/api/medicines/:id", medicineController.getMedicineById); // lấy medicine by id
+  router.patch("/api/medicines/:id", medicineController.updateMedicine); // cập nhật medicine
+  router.delete("/api/medicines/:id", medicineController.deleteMedicine); // xóa medicine
 
   // timeslot
-  router.post("/api/time-slots", timeSlotController.createTimeSlot);
-  router.get("/api/time-slots", timeSlotController.getTimeSlots);
-  router.get("/api/time-slots/:id", timeSlotController.getTimeSlotById);
-  router.patch("/api/time-slots/:id", timeSlotController.updateTimeSlot);
-  router.delete("/api/time-slots/:id", timeSlotController.deleteTimeSlot);
+  router.post("/api/time-slots", timeSlotController.createTimeSlot); // tạo time slot
+  router.get("/api/time-slots", timeSlotController.getTimeSlots); // lấy danh sách time slots
+  router.get("/api/time-slots/:id", timeSlotController.getTimeSlotById); // lấy time slot by id
+  router.patch("/api/time-slots/:id", timeSlotController.updateTimeSlot); // cập nhật time slot
+  router.delete("/api/time-slots/:id", timeSlotController.deleteTimeSlot); // xóa time slot
 
   // schedule
-  router.post("/api/schedules", scheduleController.createSchedule);
-  router.post("/api/schedules/bulk", scheduleController.createScheduleBulk);
-  router.get("/api/schedules", scheduleController.getSchedules);
-  router.patch("/api/schedules/:id", scheduleController.updateSchedule);
+  router.post("/api/schedules", scheduleController.createSchedule); // tạo schedule
+  router.post("/api/schedules/bulk", scheduleController.createScheduleBulk); // tạo nhiều schedule
+  router.get("/api/schedules", scheduleController.getSchedules); // lấy danh sách schedules
+  router.patch("/api/schedules/:id", scheduleController.updateSchedule); // cập nhật schedule
 
   // booking
   router.post("/api/bookings", bookingController.createBooking);
-  router.patch("/api/bookings/:id/confirm", bookingController.confirmBooking);
-  router.patch("/api/bookings/:id/cancel", bookingController.cancelBooking);
+  router.get("/api/bookings/:id", bookingController.getBookingById);
+  // Email confirm / cancel
   router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
   router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
   // patient booking history + cancel (compat with FE)
-  router.get("/api/get-patient-booking-history", bookingController.getBookings);
-  router.post(
-    "/api/cancel-patient-booking",
-    bookingController.cancelPatientBooking
-  );
-
+  router.get("/api/patient/bookings", bookingController.getBookings);
+  router.patch("/api/patient/bookings/cancel", bookingController.cancelBooking);
   // doctor booking management
   router.get("/api/doctor/bookings", bookingController.getDoctorBookings);
-  router.get("/api/doctor/bookings/:id", bookingController.getBookingDetails);
 
   // medical record
   router.post(
