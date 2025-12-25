@@ -12,6 +12,17 @@ const formatDateVi = (dateInput) => {
   return `Ngày ${formatted}`;
 };
 
+const createTransporter = () =>
+  nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_APP,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+
 
 const sendBookingEmail = async ({
   email,
@@ -29,15 +40,7 @@ const sendBookingEmail = async ({
     workDate,
     timeLabel,
   });
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_APP,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
+  const transporter = createTransporter();
 
   const appUrl = process.env.URL_REACT;
   if (!appUrl) {
@@ -75,6 +78,82 @@ const sendBookingEmail = async ({
   await transporter.sendMail(mailOptions);
 };
 
+// Send prescription + examination summary to patient
+const sendPrescriptionEmail = async ({
+  email,
+  patientName,
+  doctorName,
+  workDate,
+  timeLabel,
+  diagnosis,
+  conclusion,
+  medicalNote,
+  prescriptionNote,
+  items,
+}) => {
+  if (!email) throw new Error("Missing patient email");
+
+  const transporter = createTransporter();
+  const formattedDate = formatDateVi(workDate);
+
+  const itemsHtml = Array.isArray(items) && items.length
+    ? `
+      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead style="background:#f5f5f5;">
+          <tr>
+            <th style="text-align:left;">Tên thuốc</th>
+            <th style="text-align:right;">Số lượng</th>
+            <th style="text-align:left;">Cách dùng</th>
+            <th style="text-align:right;">Số ngày</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items
+            .map(
+              (it) => `
+            <tr>
+              <td>${it.name || it.medicineName || "--"}</td>
+              <td style="text-align:right;">${it.quantity ?? "--"}</td>
+              <td>${it.usage ?? "--"}</td>
+              <td style="text-align:right;">${it.duration ?? "--"}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `
+    : `<p><i>Không có đơn thuốc được kê.</i></p>`;
+
+  const html = `
+    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#333;">
+      <h3>Xin chào ${patientName}</h3>
+      <p>Bạn vừa hoàn tất khám với bác sĩ <b>${doctorName}</b>.</p>
+      <ul>
+        <li><b>${formattedDate}</b></li>
+        <li><b>Khung giờ:</b> ${timeLabel || "--"}</li>
+      </ul>
+      <h4>Kết quả khám</h4>
+      <p><b>Chẩn đoán:</b> ${diagnosis || "--"}</p>
+      <p><b>Kết luận:</b> ${conclusion || "--"}</p>
+      ${medicalNote ? `<p><b>Ghi chú:</b> ${medicalNote}</p>` : ""}
+      <h4>Đơn thuốc</h4>
+      ${itemsHtml}
+      ${prescriptionNote ? `<p><b>Ghi chú đơn thuốc:</b> ${prescriptionNote}</p>` : ""}
+      <p style="margin-top:16px;">Chúc bạn mau khỏe! Nếu có thắc mắc, vui lòng phản hồi email này.</p>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: `"Booking Care" <${process.env.EMAIL_APP}>`,
+    to: email,
+    subject: "Đơn thuốc và kết quả khám",
+    html,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
   sendBookingEmail,
+  sendPrescriptionEmail,
 };
