@@ -133,6 +133,31 @@ const getSpecialtiesStats = async (req, res) => {
   }
 };
 
+const getBookingDetails = async (req, res) => {
+  try {
+    const { clinicId, specialtyId, from, to, limit, offset } = req.query;
+
+    const data = await statisticService.getBookingDetails({
+      clinicId: clinicId ? parseInt(clinicId) : undefined,
+      specialtyId: specialtyId ? parseInt(specialtyId) : undefined,
+      from,
+      to,
+      limit: limit ? parseInt(limit) : 100,
+      offset: offset ? parseInt(offset) : 0,
+    });
+
+    return res.status(200).json({
+      errCode: 0,
+      data,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      errCode: 1,
+      errMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   getRevenueByDate,
   getDashboardKPI,
@@ -140,4 +165,5 @@ module.exports = {
   getTopDoctors,
   getClinicsStats,
   getSpecialtiesStats,
+  getBookingDetails,
 };
