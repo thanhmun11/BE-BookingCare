@@ -113,86 +113,9 @@ const getDashboardKPI = async ({ clinicId, specialtyId, from, to }) => {
     raw: true,
   });
 
-  // Tính KPI hôm nay
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const todayScheduleWhere = {
-    workDate: { [Op.gte]: today, [Op.lt]: tomorrow },
-  };
-
-  const todayBookings = await db.Booking.count({
-    where: bookingWhere,
-    include: [
-      {
-        model: db.Schedule,
-        as: "schedule",
-        where: todayScheduleWhere,
-        attributes: [],
-        required: true,
-        include: [
-          {
-            model: db.Doctor,
-            as: "doctor",
-            where: doctorWhere,
-            attributes: [],
-            required: requireDoctor,
-          },
-        ],
-      },
-    ],
-  });
-
-  const todayRevenueResult = await db.Bill.findOne({
-    attributes: [[fn("SUM", col("Bill.total")), "total"]],
-    where: {
-      status: "PAID",
-    },
-    include: [
-      {
-        model: db.MedicalRecord,
-        as: "medicalRecord",
-        attributes: [],
-        required: true,
-        include: [
-          {
-            model: db.Booking,
-            as: "booking",
-            attributes: [],
-            where: bookingWhere,
-            required: true,
-            include: [
-              {
-                model: db.Schedule,
-                as: "schedule",
-                attributes: [],
-                required: true,
-                where: todayScheduleWhere,
-                include: [
-                  {
-                    model: db.Doctor,
-                    as: "doctor",
-                    where: doctorWhere,
-                    attributes: [],
-                    required: requireDoctor,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    raw: true,
-  });
-
   return {
     totalBookings: totalBookings || 0,
     totalRevenue: parseFloat(totalRevenueResult?.total) || 0,
-    todayBookings: todayBookings || 0,
-    todayRevenue: parseFloat(todayRevenueResult?.total) || 0,
   };
 };
 
@@ -297,8 +220,11 @@ const getTimeSeries = async ({
 const getTopDoctors = async ({
   clinicId,
   specialtyId,
+  from,
+  to,
   limit = 10,
 }) => {
+  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
@@ -316,6 +242,7 @@ const getTopDoctors = async ({
         model: db.Schedule,
         as: "schedule",
         attributes: [],
+        where: scheduleDateWhere,
         required: true,
         include: [
           {
@@ -392,6 +319,7 @@ const getTopDoctors = async ({
                 model: db.Schedule,
                 as: "schedule",
                 attributes: [],
+                where: scheduleDateWhere,
                 required: true,
                 include: [
                   {
@@ -440,9 +368,10 @@ const getTopDoctors = async ({
   return result;
 };
 
-// Generic comparison stats - So sánh theo clinic hoặc specialty (all-time, không lọc)
-const getComparisonStats = async (groupByField, nameField, modelName) => {
+// Generic comparison stats - So sánh theo clinic hoặc specialty
+const getComparisonStats = async (groupByField, nameField, modelName, from, to) => {
   const groupColumn = `schedule.doctor.${groupByField}`;
+  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
   
   // Đếm lượt khám
   const bookingData = await db.Booking.findAll({
@@ -455,6 +384,7 @@ const getComparisonStats = async (groupByField, nameField, modelName) => {
         model: db.Schedule,
         as: "schedule",
         attributes: [],
+        where: scheduleDateWhere,
         required: true,
         include: [
           {
@@ -486,7 +416,7 @@ const getComparisonStats = async (groupByField, nameField, modelName) => {
     return acc;
   }, {});
 
-  // Doanh thu (all-time)
+  // Doanh thu theo thời gian
   const revenueRows = await db.Bill.findAll({
     attributes: [
       [db.sequelize.col(`medicalRecord.booking.${groupColumn}`), groupByField],
@@ -511,6 +441,7 @@ const getComparisonStats = async (groupByField, nameField, modelName) => {
                 model: db.Schedule,
                 as: "schedule",
                 attributes: [],
+                where: scheduleDateWhere,
                 required: true,
                 include: [
                   {
@@ -550,14 +481,142 @@ const getComparisonStats = async (groupByField, nameField, modelName) => {
     .sort((a, b) => b.revenue - a.revenue);
 };
 
-// Clinics comparison - So sánh các cơ sở (all-time, không lọc)
-const getClinicsStats = async () => {
-  return getComparisonStats("clinicId", "clinicName", "Clinic");
+// Clinics comparison - So sánh các cơ sở
+const getClinicsStats = async ({ from, to }) => {
+  return getComparisonStats("clinicId", "clinicName", "Clinic", from, to);
 };
 
-// Specialties comparison - So sánh các chuyên khoa (all-time, không lọc)
-const getSpecialtiesStats = async () => {
-  return getComparisonStats("specialtyId", "specialtyName", "Specialty");
+// Specialties comparison - So sánh các chuyên khoa
+const getSpecialtiesStats = async ({ from, to }) => {
+  return getComparisonStats("specialtyId", "specialtyName", "Specialty", from, to);
+};
+
+// Get booking details list with filters
+const getBookingDetails = async ({ clinicId, specialtyId, from, to, limit = 100, offset = 0 }) => {
+  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
+  const doctorWhere = {
+    ...(clinicId && { clinicId }),
+    ...(specialtyId && { specialtyId }),
+  };
+  const requireDoctor = Object.keys(doctorWhere).length > 0;
+
+  const bookings = await db.Booking.findAll({
+    where: { status: "DONE" },
+    include: [
+      {
+        model: db.Schedule,
+        as: "schedule",
+        where: scheduleDateWhere,
+        required: true,
+        include: [
+          {
+            model: db.Doctor,
+            as: "doctor",
+            where: doctorWhere,
+            required: requireDoctor,
+            include: [
+              {
+                model: db.User,
+                as: "user",
+                attributes: ["fullName"],
+              },
+              {
+                model: db.Specialty,
+                as: "specialty",
+                attributes: ["name"],
+              },
+              {
+                model: db.Clinic,
+                as: "clinic",
+                attributes: ["name"],
+              },
+            ],
+          },
+          {
+            model: db.TimeSlot,
+            as: "timeSlot",
+            attributes: ["startTime", "endTime", "label"],
+          },
+        ],
+      },
+      {
+        model: db.Patient,
+        as: "patient",
+        required: true,
+        include: [
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["fullName", "phoneNumber"],
+          },
+        ],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+    limit,
+    offset,
+  });
+
+  // Get bill info for each booking
+  const bookingIds = bookings.map(b => b.id);
+  
+  let billMap = {};
+  if (bookingIds.length > 0) {
+    const bills = await db.Bill.findAll({
+      where: { status: "PAID" },
+      include: [
+        {
+          model: db.MedicalRecord,
+          as: "medicalRecord",
+          where: { bookingId: { [Op.in]: bookingIds } },
+          attributes: ["bookingId"],
+          required: true,
+        },
+      ],
+      attributes: ["id", "total"],
+    });
+
+    bills.forEach(bill => {
+      billMap[bill.medicalRecord.bookingId] = bill.total;
+    });
+  }
+
+  const result = bookings.map(booking => ({
+    id: booking.id,
+    patientName: booking.patient.user.fullName,
+    patientPhone: booking.patient.user.phoneNumber,
+    doctorName: booking.schedule.doctor.user.fullName,
+    specialty: booking.schedule.doctor.specialty.name,
+    clinic: booking.schedule.doctor.clinic.name,
+    workDate: booking.schedule.workDate,
+    timeSlot: booking.schedule.timeSlot.label,
+    revenue: parseFloat(billMap[booking.id]) || 0,
+    createdAt: booking.createdAt,
+  }));
+
+  const total = await db.Booking.count({
+    where: { status: "DONE" },
+    include: [
+      {
+        model: db.Schedule,
+        as: "schedule",
+        where: scheduleDateWhere,
+        attributes: [],
+        required: true,
+        include: [
+          {
+            model: db.Doctor,
+            as: "doctor",
+            where: doctorWhere,
+            attributes: [],
+            required: requireDoctor,
+          },
+        ],
+      },
+    ],
+  });
+
+  return { bookings: result, total };
 };
 
 module.exports = {
@@ -567,4 +626,5 @@ module.exports = {
   getTopDoctors,
   getClinicsStats,
   getSpecialtiesStats,
+  getBookingDetails,
 };

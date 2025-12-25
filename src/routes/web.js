@@ -115,6 +115,7 @@ let initWebRoutes = (app) => {
     "/api/statistics/specialties",
     statisticController.getSpecialtiesStats
   );
+  router.get("/api/statistics/bookings", statisticController.getBookingDetails);
 
   // chat
   router.post("/api/chat-booking", chatController.chatBooking);
