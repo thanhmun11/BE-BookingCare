@@ -98,23 +98,16 @@ const getDashboardKPI = async ({ clinicId, specialtyId, from, to }) => {
 };
 
 // Time series data - lượt khám và doanh thu theo ngày
-const getTimeSeries = async ({
-  clinicId,
-  specialtyId,
-  metric = "bookings",
-  from,
-  to,
-}) => {
-  const scheduleDateWhere =
-    from && to ? { workDate: normalizeDateRange(from, to) } : {};
+const getTimeSeries = async ({ clinicId, specialtyId, from, to }) => {
+  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
   };
   const requireDoctor = Object.keys(doctorWhere).length > 0;
 
-  if (metric === "bookings") {
-    const data = await db.Booking.findAll({
+  const fetchBookingsSeries = () =>
+    db.Booking.findAll({
       attributes: [
         [fn("DATE", col("schedule.workDate")), "date"],
         [fn("COUNT", col("Booking.id")), "count"],
@@ -143,10 +136,9 @@ const getTimeSeries = async ({
       subQuery: false,
       raw: true,
     });
-    return data;
-  } else if (metric === "revenue") {
-    // Doanh thu theo ngày làm việc (Schedule.workDate)
-    const data = await db.Bill.findAll({
+
+  const fetchRevenueSeries = () =>
+    db.Bill.findAll({
       attributes: [
         [fn("DATE", col("medicalRecord.booking.schedule.workDate")), "date"],
         [fn("SUM", col("Bill.total")), "revenue"],
@@ -193,8 +185,13 @@ const getTimeSeries = async ({
       ],
       raw: true,
     });
-    return data;
-  }
+
+  const [bookings, revenue] = await Promise.all([
+    fetchBookingsSeries(),
+    fetchRevenueSeries(),
+  ]);
+
+  return { bookings, revenue };
 };
 
 // Top Doctors - Thống kê theo bác sĩ
