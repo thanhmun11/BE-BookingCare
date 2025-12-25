@@ -21,12 +21,12 @@ let initWebRoutes = (app) => {
   });
 
   // user (auth + management)
-  router.post("/api/users/register", userController.registerUser);
-  router.post("/api/users/login", userController.loginUser);
-  router.get("/api/users/profile", userController.getUserProfile);
+  router.post("/api/users/register", userController.registerUser); // đăng ký
+  router.post("/api/users/login", userController.loginUser); // đăng nhập
+  router.get("/api/users/profile", userController.getUserProfile); // lấy profile user hiện tại
   router.post("/api/users/create", userController.createUser); // Admin tạo user với role tùy chỉnh
-  router.get("/api/users", userController.getAllUsers); // Lấy danh sách users
-  router.get("/api/users/getAllDoctors", userController.getAllDoctors); // Lấy danh sách doctors
+  router.get("/api/users", userController.getUsers); // Lấy danh sách users
+  router.get("/api/users/doctors", userController.getDoctorUsers); // Lấy danh sách users có role DOCTOR
   router.delete("/api/users/:id", userController.deleteUser); // Xóa user
   router.put("/api/users/:id", userController.updateUser); // Cập nhật user
 
@@ -78,8 +78,8 @@ let initWebRoutes = (app) => {
   router.patch("/api/schedules/:id", scheduleController.updateSchedule); // cập nhật schedule
 
   // booking
-  router.post("/api/bookings", bookingController.createBooking);
-  router.get("/api/bookings/:id", bookingController.getBookingById);
+  router.post("/api/bookings", bookingController.createBooking); // tạo booking
+  router.get("/api/bookings/:id", bookingController.getBookingById); // lấy booking by id
   // Email confirm / cancel
   router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
   router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
@@ -103,19 +103,15 @@ let initWebRoutes = (app) => {
   router.patch("/api/bills/pay", billController.payBill);
 
   // statistic
-  router.get(
-    "/api/statistics/revenue-by-date",
-    statisticController.getRevenueByDate
-  );
-  router.get("/api/statistics/dashboard", statisticController.getDashboardKPI);
-  router.get("/api/statistics/time-series", statisticController.getTimeSeries);
-  router.get("/api/statistics/doctors", statisticController.getTopDoctors);
-  router.get("/api/statistics/clinics", statisticController.getClinicsStats);
+  router.get("/api/statistics/dashboard", statisticController.getDashboardKPI); // tổng lượt khám/doanh thu
+  router.get("/api/statistics/time-series", statisticController.getTimeSeries); // lượt khám/doanh thu theo ngày
+  router.get("/api/statistics/doctors", statisticController.getTopDoctors); // thống kê bác sĩ
+  router.get("/api/statistics/clinics", statisticController.getClinicsStats); // thống kê phòng khám
   router.get(
     "/api/statistics/specialties",
     statisticController.getSpecialtiesStats
-  );
-  router.get("/api/statistics/bookings", statisticController.getBookingDetails);
+  ); // thống kê chuyên khoa
+  router.get("/api/statistics/bookings", statisticController.getBookingDetails); // chi tiết lượt khám
 
   // chat
   router.post("/api/chat-booking", chatController.chatBooking);

@@ -1,7 +1,6 @@
 const db = require("../models/index");
 const { Op } = db.Sequelize;
 
-// Tạo time slot mới
 const createTimeSlot = async ({ startTime, endTime, label }) => {
   if (!startTime || !endTime || !label) {
     throw new Error("Missing required parameters: startTime, endTime, label");
@@ -16,14 +15,12 @@ const createTimeSlot = async ({ startTime, endTime, label }) => {
   return db.TimeSlot.create({ startTime, endTime, label });
 };
 
-// Lấy tất cả time slots
 const getTimeSlots = async () => {
   return db.TimeSlot.findAll({
     order: [["startTime", "ASC"]],
   });
 };
 
-// Lấy time slot theo ID
 const getTimeSlotById = async (id) => {
   if (!id) throw new Error("Missing timeSlot ID");
 
@@ -33,7 +30,6 @@ const getTimeSlotById = async (id) => {
   return slot;
 };
 
-// Cập nhật time slot
 const updateTimeSlot = async (id, data) => {
   if (!id) throw new Error("Missing timeSlot ID");
 
@@ -57,7 +53,6 @@ const updateTimeSlot = async (id, data) => {
   return slot.update(data);
 };
 
-// Xóa time slot
 const deleteTimeSlot = async (id) => {
   if (!id) throw new Error("Missing timeSlot ID");
 

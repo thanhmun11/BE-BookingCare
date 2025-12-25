@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
+// Đăng ký user (role mặc định là PATIENT)
 const registerUser = async ({ fullName, email, password, ...profileData }) => {
   // Validate required fields
   if (!fullName || !email || !password) {
@@ -33,6 +34,7 @@ const registerUser = async ({ fullName, email, password, ...profileData }) => {
   return user;
 };
 
+// Đăng nhập user
 const loginUser = async ({ email, password }) => {
   if (!email || !password) throw new Error("Missing email or password");
 
@@ -56,6 +58,7 @@ const loginUser = async ({ email, password }) => {
   return { user: safeUser, token };
 };
 
+// Lấy profile user kèm data tương ứng với role
 const getUserProfile = async (userId) => {
   const user = await db.User.findByPk(userId, {
     include: [
@@ -112,7 +115,7 @@ const createUser = async ({
 };
 
 // Lấy danh sách tất cả users
-const getAllUsers = async () => {
+const getUsers = async () => {
   const users = await db.User.findAll({
     attributes: { exclude: ["password"] },
     include: [
@@ -160,7 +163,7 @@ const updateUser = async (userId, updateData) => {
 };
 
 // Lấy danh sách tất cả doctors (users có role DOCTOR)
-const getAllDoctors = async () => {
+const getDoctorUsers = async () => {
   const doctors = await db.User.findAll({
     where: { role: "DOCTOR" },
     attributes: { exclude: ["password"] },
@@ -173,8 +176,8 @@ module.exports = {
   loginUser,
   getUserProfile,
   createUser,
-  getAllUsers,
+  getUsers,
   deleteUser,
   updateUser,
-  getAllDoctors,
+  getDoctorUsers,
 };
