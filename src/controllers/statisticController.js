@@ -43,12 +43,11 @@ const getDashboardKPI = async (req, res) => {
 
 const getTimeSeries = async (req, res) => {
   try {
-    const { clinicId, specialtyId, metric, from, to } = req.query;
+    const { clinicId, specialtyId, from, to } = req.query;
 
     const data = await statisticService.getTimeSeries({
       clinicId: clinicId ? parseInt(clinicId) : undefined,
       specialtyId: specialtyId ? parseInt(specialtyId) : undefined,
-      metric: metric || "bookings",
       from,
       to,
     });

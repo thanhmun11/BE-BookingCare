@@ -1,3 +1,4 @@
+const { at } = require("lodash");
 const db = require("../models/index");
 
 const createHandbook = async ({ title, content, image, doctorId }) => {
@@ -20,6 +21,7 @@ const createHandbook = async ({ title, content, image, doctorId }) => {
 
 const getHandbooks = async () => {
   return db.Handbook.findAll({
+    attributes: ["id", "title", "image", "createdAt"],
     include: [
       {
         model: db.Doctor,
@@ -39,7 +41,14 @@ const getHandbookById = async (id) => {
       {
         model: db.Doctor,
         as: "doctor",
-        attributes: ["id"],
+        attributes: ["id", "title", "fee"],
+        include: [
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["id", "fullName", "image"],
+          },
+        ],
       },
     ],
   });
