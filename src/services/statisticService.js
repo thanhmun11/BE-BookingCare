@@ -12,33 +12,11 @@ const normalizeDateRange = (from, to) => {
   return { [Op.gte]: start, [Op.lt]: end };
 };
 
-// Lấy doanh thu theo ngày (API cũ - giữ lại để tương thích)
-const getRevenueByDate = async ({ from, to }) => {
-  if (!from || !to) {
-    throw new Error("Missing from or to date");
-  }
-
-  const revenueStats = await db.Bill.findAll({
-    attributes: [
-      [fn("DATE", col("createdAt")), "date"],
-      [fn("SUM", col("total")), "revenue"],
-    ],
-    where: {
-      status: "PAID",
-      createdAt: normalizeDateRange(from, to),
-    },
-    group: [fn("DATE", col("createdAt"))],
-    order: [[fn("DATE", col("createdAt")), "ASC"]],
-    raw: true,
-  });
-
-  return revenueStats;
-};
-
-// KPI Tổng quan (Total bookings, revenue, today's stats)
+// KPI Tổng quan (Total bookings, revenue)
 const getDashboardKPI = async ({ clinicId, specialtyId, from, to }) => {
   // Build filters
-  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
+  const scheduleDateWhere =
+    from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
@@ -202,7 +180,9 @@ const getTimeSeries = async ({ clinicId, specialtyId, from, to }) => {
       ],
       where: { status: "PAID" },
       group: [fn("DATE", col("medicalRecord.booking.schedule.workDate"))],
-      order: [[fn("DATE", col("medicalRecord.booking.schedule.workDate")), "ASC"]],
+      order: [
+        [fn("DATE", col("medicalRecord.booking.schedule.workDate")), "ASC"],
+      ],
       raw: true,
     });
 
@@ -222,7 +202,8 @@ const getTopDoctors = async ({
   to,
   limit = 10,
 }) => {
-  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
+  const scheduleDateWhere =
+    from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
@@ -260,7 +241,7 @@ const getTopDoctors = async ({
   });
 
   const doctorIds = bookingData.map((b) => b.doctorId);
-  
+
   if (doctorIds.length === 0) {
     return [];
   }
@@ -367,10 +348,17 @@ const getTopDoctors = async ({
 };
 
 // Generic comparison stats - So sánh theo clinic hoặc specialty
-const getComparisonStats = async (groupByField, nameField, modelName, from, to) => {
+const getComparisonStats = async (
+  groupByField,
+  nameField,
+  modelName,
+  from,
+  to
+) => {
   const groupColumn = `schedule.doctor.${groupByField}`;
-  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
-  
+  const scheduleDateWhere =
+    from && to ? { workDate: normalizeDateRange(from, to) } : {};
+
   // Đếm lượt khám
   const bookingData = await db.Booking.findAll({
     attributes: [
@@ -486,12 +474,26 @@ const getClinicsStats = async ({ from, to }) => {
 
 // Specialties comparison - So sánh các chuyên khoa
 const getSpecialtiesStats = async ({ from, to }) => {
-  return getComparisonStats("specialtyId", "specialtyName", "Specialty", from, to);
+  return getComparisonStats(
+    "specialtyId",
+    "specialtyName",
+    "Specialty",
+    from,
+    to
+  );
 };
 
 // Get booking details list with filters
-const getBookingDetails = async ({ clinicId, specialtyId, from, to, limit = 100, offset = 0 }) => {
-  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
+const getBookingDetails = async ({
+  clinicId,
+  specialtyId,
+  from,
+  to,
+  limit = 100,
+  offset = 0,
+}) => {
+  const scheduleDateWhere =
+    from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
@@ -556,8 +558,8 @@ const getBookingDetails = async ({ clinicId, specialtyId, from, to, limit = 100,
   });
 
   // Get bill info for each booking
-  const bookingIds = bookings.map(b => b.id);
-  
+  const bookingIds = bookings.map((b) => b.id);
+
   let billMap = {};
   if (bookingIds.length > 0) {
     const bills = await db.Bill.findAll({
@@ -574,12 +576,12 @@ const getBookingDetails = async ({ clinicId, specialtyId, from, to, limit = 100,
       attributes: ["id", "total"],
     });
 
-    bills.forEach(bill => {
+    bills.forEach((bill) => {
       billMap[bill.medicalRecord.bookingId] = bill.total;
     });
   }
 
-  const result = bookings.map(booking => ({
+  const result = bookings.map((booking) => ({
     id: booking.id,
     patientName: booking.patient.user.fullName,
     patientPhone: booking.patient.user.phoneNumber,

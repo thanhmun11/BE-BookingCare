@@ -11,28 +11,6 @@ const createBooking = async (req, res) => {
   }
 };
 
-const confirmBooking = async (req, res) => {
-  try {
-    const booking = await bookingService.confirmBooking(req.params.id);
-    return res.status(200).json(booking);
-  } catch (error) {
-    return res.status(400).json({
-      message: error.message,
-    });
-  }
-};
-
-const cancelBooking = async (req, res) => {
-  try {
-    const booking = await bookingService.cancelBooking(req.params.id);
-    return res.status(200).json(booking);
-  } catch (error) {
-    return res.status(400).json({
-      message: error.message,
-    });
-  }
-};
-
 const confirmBookingByToken = async (req, res) => {
   try {
     const booking = await bookingService.confirmBookingByToken(req.query.token);
@@ -77,10 +55,14 @@ const getBookings = async (req, res) => {
   }
 };
 
-const cancelPatientBooking = async (req, res) => {
+const cancelBooking = async (req, res) => {
   try {
-    const booking = await bookingService.cancelBookingByPatient(req.body);
-    return res.status(200).json({errorCode: 0, message: "Booking cancelled successfully", booking });
+    const booking = await bookingService.cancelBooking(req.body);
+    return res.status(200).json({
+      errorCode: 0,
+      message: "Booking cancelled successfully",
+      booking,
+    });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -90,18 +72,21 @@ const cancelPatientBooking = async (req, res) => {
 const getDoctorBookings = async (req, res) => {
   try {
     const { doctorId, workDate, status } = req.query;
-    const data = await bookingService.getBookingsForDoctor({ doctorId, workDate, status });
+    const data = await bookingService.getBookingsForDoctor({
+      doctorId,
+      workDate,
+      status,
+    });
     return res.status(200).json(data);
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
 };
 
-// Doctor: detail for a booking id
-const getBookingDetails = async (req, res) => {
+const getBookingById = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await bookingService.getBookingDetails(id);
+    const data = await bookingService.getBookingById(id);
     return res.status(200).json(data);
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -110,12 +95,10 @@ const getBookingDetails = async (req, res) => {
 
 module.exports = {
   createBooking,
-  confirmBooking,
-  cancelBooking,
   confirmBookingByToken,
   cancelBookingByToken,
   getBookings,
-  cancelPatientBooking,
+  cancelBooking,
   getDoctorBookings,
-  getBookingDetails,
+  getBookingById,
 };

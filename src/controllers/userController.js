@@ -42,18 +42,18 @@ const createUser = async (req, res) => {
   }
 };
 
-const getAllUsers = async (req, res) => {
+const getUsers = async (req, res) => {
   try {
-    const users = await userService.getAllUsers();
+    const users = await userService.getUsers();
     res.status(200).json({ errCode: 0, users });
   } catch (err) {
     res.status(400).json({ errCode: 1, message: err.message });
   }
 };
 
-const getAllDoctors = async (req, res) => {
+const getDoctorUsers = async (req, res) => {
   try {
-    const users = await userService.getAllDoctors();
+    const users = await userService.getDoctorUsers();
     res.status(200).json({ errCode: 0, data: users });
   } catch (err) {
     res.status(400).json({ errCode: 1, message: err.message });
@@ -85,8 +85,8 @@ module.exports = {
   loginUser,
   getUserProfile,
   createUser,
-  getAllUsers,
+  getUsers,
   deleteUser,
   updateUser,
-  getAllDoctors,
+  getDoctorUsers,
 };

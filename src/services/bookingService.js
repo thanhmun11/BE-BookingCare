@@ -81,14 +81,17 @@ const createBooking = async ({ patientId, scheduleId, reason }) => {
   return booking;
 };
 
-const confirmBooking = async (bookingId) => {
-  if (!bookingId) {
-    throw new Error("Missing bookingId");
+const confirmBookingByToken = async (token) => {
+  if (!token) {
+    throw new Error("Missing token");
   }
 
-  const booking = await db.Booking.findByPk(bookingId);
+  const booking = await db.Booking.findOne({
+    where: { token },
+  });
+
   if (!booking) {
-    throw new Error("Booking not found");
+    throw new Error("Invalid or expired token");
   }
 
   if (booking.status === "CANCELLED") {
@@ -100,7 +103,7 @@ const confirmBooking = async (bookingId) => {
   }
 
   if (booking.status === "CONFIRMED") {
-    return booking; // idempotent
+    return booking;
   }
 
   booking.status = "CONFIRMED";
@@ -109,14 +112,45 @@ const confirmBooking = async (bookingId) => {
   return booking;
 };
 
-const cancelBooking = async (bookingId) => {
-  if (!bookingId) {
-    throw new Error("Missing bookingId");
+const cancelBookingByToken = async (token) => {
+  if (!token) {
+    throw new Error("Missing token");
+  }
+
+  const booking = await db.Booking.findOne({
+    where: { token },
+  });
+
+  if (!booking) {
+    throw new Error("Invalid or expired token");
+  }
+
+  if (booking.status === "DONE") {
+    throw new Error("Cannot cancel a completed booking");
+  }
+
+  if (booking.status === "CANCELLED") {
+    return booking;
+  }
+
+  booking.status = "CANCELLED";
+  await booking.save();
+
+  return booking;
+};
+
+const cancelBooking = async ({ bookingId, patientId }) => {
+  if (!bookingId || !patientId) {
+    throw new Error("Missing required parameters");
   }
 
   const booking = await db.Booking.findByPk(bookingId);
   if (!booking) {
     throw new Error("Booking not found");
+  }
+
+  if (booking.patientId !== Number(patientId)) {
+    throw new Error("Forbidden: booking does not belong to patient");
   }
 
   if (booking.status === "DONE") {
@@ -133,67 +167,6 @@ const cancelBooking = async (bookingId) => {
   return booking;
 };
 
-const confirmBookingByToken = async (token) => {
-  if (!token) {
-    throw new Error("Missing token");
-  }
-
-  const booking = await db.Booking.findOne({
-    where: { token },
-  });
-
-  if (!booking) {
-    throw new Error("Invalid or expired token");
-  }
-
-  if (booking.status === "CANCELLED") {
-    throw new Error("Booking has been cancelled");
-  }
-
-  if (booking.status === "CONFIRMED") {
-    return booking; // đã xác nhận rồi
-  }
-
-  booking.status = "CONFIRMED";
-  await booking.save();
-
-  return booking;
-};
-
-const cancelBookingByToken = async (token) => {
-  if (!token) {
-    throw new Error("Missing token");
-  }
-
-  const booking = await db.Booking.findOne({
-    where: { token },
-    include: [
-      {
-        model: db.MedicalRecord,
-        as: "medicalRecord",
-      },
-    ],
-  });
-
-  if (!booking) {
-    throw new Error("Invalid or expired token");
-  }
-
-  if (booking.medicalRecord) {
-    throw new Error("Cannot cancel booking after examination");
-  }
-
-  if (booking.status === "CANCELLED") {
-    return booking;
-  }
-
-  booking.status = "CANCELLED";
-  await booking.save();
-
-  return booking;
-};
-
-// List bookings for a patient with rich includes
 const getBookingsByPatient = async (patientId) => {
   if (!patientId) {
     throw new Error("Missing patientId");
@@ -254,49 +227,7 @@ const getBookingsByPatient = async (patientId) => {
   return bookings;
 };
 
-// Cancel booking verified by patient ownership
-const cancelBookingByPatient = async ({ bookingId, patientId }) => {
-  if (!bookingId || !patientId) {
-    throw new Error("Missing required parameters");
-  }
-
-  const booking = await db.Booking.findByPk(bookingId);
-  if (!booking) {
-    throw new Error("Booking not found");
-  }
-
-  if (booking.patientId !== Number(patientId)) {
-    throw new Error("Forbidden: booking does not belong to patient");
-  }
-
-  if (booking.status === "DONE") {
-    throw new Error("Cannot cancel a completed booking");
-  }
-
-  if (booking.status === "CANCELLED") {
-    return booking; // idempotent
-  }
-
-  booking.status = "CANCELLED";
-  await booking.save();
-
-  return booking;
-};
-
-module.exports = {
-  createBooking,
-  confirmBooking,
-  cancelBooking,
-  confirmBookingByToken,
-  cancelBookingByToken,
-  getBookingsByPatient,
-  cancelBookingByPatient,
-  getBookingsForDoctor,
-  getBookingDetails,
-};
-
-// List bookings for a doctor by date and status with rich includes
-async function getBookingsForDoctor({ doctorId, workDate, status }) {
+const getBookingsForDoctor = async ({ doctorId, workDate, status }) => {
   if (!doctorId) {
     throw new Error("Missing required parameters");
   }
@@ -376,10 +307,9 @@ async function getBookingsForDoctor({ doctorId, workDate, status }) {
   });
 
   return bookings;
-}
+};
 
-// Detail for a single booking including examination + billing
-async function getBookingDetails(bookingId) {
+const getBookingById = async (bookingId) => {
   if (!bookingId) throw new Error("Missing bookingId");
 
   const booking = await db.Booking.findByPk(bookingId, {
@@ -394,12 +324,16 @@ async function getBookingDetails(bookingId) {
           {
             model: db.Doctor,
             as: "doctor",
-            attributes: ["id", "fee" ],
-            
+            attributes: ["id", "fee"],
+
             include: [
               { model: db.User, as: "user", attributes: ["id", "fullName"] },
               { model: db.Clinic, as: "clinic", attributes: ["id", "name"] },
-              { model: db.Specialty, as: "specialty", attributes: ["id", "name"] },
+              {
+                model: db.Specialty,
+                as: "specialty",
+                attributes: ["id", "name"],
+              },
             ],
           },
         ],
@@ -447,4 +381,14 @@ async function getBookingDetails(bookingId) {
 
   if (!booking) throw new Error("Booking not found");
   return booking;
-}
+};
+
+module.exports = {
+  createBooking,
+  confirmBookingByToken,
+  cancelBookingByToken,
+  getBookingsByPatient,
+  cancelBooking,
+  getBookingsForDoctor,
+  getBookingById,
+};

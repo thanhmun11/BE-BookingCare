@@ -1,6 +1,5 @@
 const db = require("../models/index");
 
-/* ================= CREATE ================= */
 const createMedicine = async ({ name, unit, description }) => {
   if (!name || !unit) {
     throw new Error("Missing required parameters");
@@ -18,14 +17,12 @@ const createMedicine = async ({ name, unit, description }) => {
   });
 };
 
-/* ================= GET LIST ================= */
 const getMedicines = async () => {
   return db.Medicine.findAll({
     order: [["name", "ASC"]],
   });
 };
 
-/* ================= GET DETAIL ================= */
 const getMedicineById = async (id) => {
   if (!id) throw new Error("Missing medicine id");
 
@@ -37,7 +34,6 @@ const getMedicineById = async (id) => {
   return medicine;
 };
 
-/* ================= UPDATE ================= */
 const updateMedicine = async (id, data) => {
   if (!id) throw new Error("Missing medicine id");
 
@@ -60,7 +56,6 @@ const updateMedicine = async (id, data) => {
   return medicine;
 };
 
-/* ================= DELETE ================= */
 const deleteMedicine = async (id) => {
   if (!id) throw new Error("Missing medicine id");
 

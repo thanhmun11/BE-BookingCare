@@ -29,6 +29,7 @@ const createSchedule = async ({
   return db.Schedule.create({ doctorId, timeSlotId, workDate, maxPatient });
 };
 
+// Tạo lịch hàng loạt (bulk) với việc xóa lịch cũ của ngày đó
 const createScheduleBulk = async ({
   doctorId,
   workDate,
@@ -36,12 +37,7 @@ const createScheduleBulk = async ({
   maxPatient,
 }) => {
   /* ========= 1. Validate input ========= */
-  if (
-    !doctorId ||
-    !workDate ||
-    !Array.isArray(timeSlotIds) ||
-    !maxPatient
-  ) {
+  if (!doctorId || !workDate || !Array.isArray(timeSlotIds) || !maxPatient) {
     throw new Error("Missing required parameters");
   }
 
@@ -57,8 +53,8 @@ const createScheduleBulk = async ({
       doctorId,
       [db.Sequelize.Op.and]: [
         db.Sequelize.where(
-          db.Sequelize.fn('DATE', db.Sequelize.col('workDate')),
-          '=',
+          db.Sequelize.fn("DATE", db.Sequelize.col("workDate")),
+          "=",
           workDate
         ),
       ],
@@ -108,13 +104,13 @@ const createScheduleBulk = async ({
 const getSchedules = async (filters) => {
   const where = {};
   if (filters.doctorId) where.doctorId = parseInt(filters.doctorId);
-  
+
   // Convert workDate string (YYYY-MM-DD) to DATE for comparison
   if (filters.workDate) {
     where[db.Sequelize.Op.and] = [
       db.Sequelize.where(
-        db.Sequelize.fn('DATE', db.Sequelize.col('Schedule.workDate')),
-        '=',
+        db.Sequelize.fn("DATE", db.Sequelize.col("Schedule.workDate")),
+        "=",
         filters.workDate
       ),
     ];
