@@ -84,7 +84,7 @@ let initWebRoutes = (app) => {
   router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
   router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
   // patient booking history + cancel (compat with FE)
-  router.get("/api/patient/bookings", bookingController.getBookings);
+  router.get("/api/patient/bookings", bookingController.getPatientBookings);
   router.patch("/api/patient/bookings/cancel", bookingController.cancelBooking);
   // doctor booking management
   router.get("/api/doctor/bookings", bookingController.getDoctorBookings);

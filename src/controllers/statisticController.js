@@ -140,7 +140,6 @@ const getBookingDetails = async (req, res) => {
 };
 
 module.exports = {
-  getRevenueByDate,
   getDashboardKPI,
   getTimeSeries,
   getTopDoctors,

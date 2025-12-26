@@ -41,20 +41,6 @@ const cancelBookingByToken = async (req, res) => {
   }
 };
 
-const getBookings = async (req, res) => {
-  try {
-    const { patientId } = req.query;
-    if (!patientId) {
-      return res.status(400).json({ message: "Missing patientId" });
-    }
-
-    const bookings = await bookingService.getBookingsByPatient(patientId);
-    return res.status(200).json(bookings);
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
-
 const cancelBooking = async (req, res) => {
   try {
     const booking = await bookingService.cancelBooking(req.body);
@@ -68,7 +54,20 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-// Doctor: list bookings by date/status
+const getPatientBookings = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+    if (!patientId) {
+      return res.status(400).json({ message: "Missing patientId" });
+    }
+
+    const bookings = await bookingService.getBookingsByPatient(patientId);
+    return res.status(200).json(bookings);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 const getDoctorBookings = async (req, res) => {
   try {
     const { doctorId, workDate, status } = req.query;
@@ -97,8 +96,8 @@ module.exports = {
   createBooking,
   confirmBookingByToken,
   cancelBookingByToken,
-  getBookings,
   cancelBooking,
+  getPatientBookings,
   getDoctorBookings,
   getBookingById,
 };

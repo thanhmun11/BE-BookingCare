@@ -99,7 +99,8 @@ const getDashboardKPI = async ({ clinicId, specialtyId, from, to }) => {
 
 // Time series data - lượt khám và doanh thu theo ngày
 const getTimeSeries = async ({ clinicId, specialtyId, from, to }) => {
-  const scheduleDateWhere = from && to ? { workDate: normalizeDateRange(from, to) } : {};
+  const scheduleDateWhere =
+    from && to ? { workDate: normalizeDateRange(from, to) } : {};
   const doctorWhere = {
     ...(clinicId && { clinicId }),
     ...(specialtyId && { specialtyId }),
@@ -620,7 +621,6 @@ const getBookingDetails = async ({
 };
 
 module.exports = {
-  getRevenueByDate,
   getDashboardKPI,
   getTimeSeries,
   getTopDoctors,
