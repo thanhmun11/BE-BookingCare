@@ -79,10 +79,9 @@ let initWebRoutes = (app) => {
 
   // booking
   router.post("/api/bookings", bookingController.createBooking); // tạo booking
-  router.get("/api/bookings/:id", bookingController.getBookingById); // lấy booking by id
-  // Email confirm / cancel
   router.get("/api/bookings/confirm", bookingController.confirmBookingByToken);
   router.get("/api/bookings/cancel", bookingController.cancelBookingByToken);
+  router.get("/api/bookings/:id", bookingController.getBookingById); // lấy booking by id
   // patient booking history + cancel (compat with FE)
   router.get("/api/patient/bookings", bookingController.getPatientBookings);
   router.patch("/api/patient/bookings/cancel", bookingController.cancelBooking);

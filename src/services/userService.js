@@ -136,6 +136,7 @@ const deleteUser = async (userId) => {
   if (user.role === "PATIENT") {
     await db.Patient.destroy({ where: { id: userId } });
   } else if (user.role === "DOCTOR") {
+    await db.Patient.destroy({ where: { id: userId } });
     await db.Doctor.destroy({ where: { id: userId } });
   } else if (user.role === "ADMIN") {
     await db.Admin.destroy({ where: { id: userId } });

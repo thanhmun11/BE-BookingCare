@@ -18,6 +18,22 @@ const createSchedule = async ({
   const timeSlot = await db.TimeSlot.findByPk(timeSlotId);
   if (!timeSlot) throw new Error("TimeSlot not found");
 
+  const todayLocal = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+  const workDateLocal = new Date(workDate).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+  if (workDateLocal === todayLocal) {
+    const nowTime = new Date().toLocaleTimeString("en-GB", {
+      hour12: false,
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    if (timeSlot.startTime <= nowTime) {
+      throw new Error("Cannot create schedule for a time slot that already passed");
+    }
+  }
+
   const conflict = await db.Schedule.findOne({
     where: { doctorId, timeSlotId, workDate },
   });
@@ -82,6 +98,24 @@ const createScheduleBulk = async ({
     throw new Error("One or more TimeSlots not found");
   }
 
+  const todayLocal = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+  const workDateLocal = new Date(workDate).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+
+  if (workDateLocal === todayLocal) {
+    const nowTime = new Date().toLocaleTimeString("en-GB", {
+      hour12: false,
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    const invalidSlots = timeSlots.filter((slot) => slot.startTime <= nowTime);
+    if (invalidSlots.length) {
+      throw new Error("Không thể tạo lịch cho các khung giờ đã qua");
+    }
+  }
+
   /* ========= 6. Chuẩn bị data để tạo ========= */
   const schedulesToCreate = timeSlotIds.map((slotId) => ({
     doctorId,
@@ -105,6 +139,12 @@ const getSchedules = async (filters) => {
   const where = {};
   if (filters.doctorId) where.doctorId = parseInt(filters.doctorId);
 
+  const include = [
+    { model: db.Doctor, as: "doctor" },
+    { model: db.TimeSlot, as: "timeSlot" },
+    { model: db.Booking, as: "bookings" },
+  ];
+
   // Convert workDate string (YYYY-MM-DD) to DATE for comparison
   if (filters.workDate) {
     where[db.Sequelize.Op.and] = [
@@ -114,15 +154,29 @@ const getSchedules = async (filters) => {
         filters.workDate
       ),
     ];
+
+    // When querying today's schedules, skip time slots that have already passed
+    const todayLocal = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    if (filters.workDate === todayLocal) {
+      const nowTime = new Date().toLocaleTimeString("en-GB", {
+        hour12: false,
+        timeZone: "Asia/Ho_Chi_Minh",
+      });
+
+      include[1] = {
+        ...include[1],
+        // Bỏ hẳn ca đang diễn ra; chỉ lấy ca bắt đầu sau thời điểm hiện tại
+        where: { startTime: { [Op.gt]: nowTime } },
+        required: true,
+      };
+    }
   }
 
   return db.Schedule.findAll({
     where,
-    include: [
-      { model: db.Doctor, as: "doctor" },
-      { model: db.TimeSlot, as: "timeSlot" },
-      { model: db.Booking, as: "bookings" },
-    ],
+    include,
     order: [
       ["workDate", "ASC"],
       ["timeSlotId", "ASC"],
