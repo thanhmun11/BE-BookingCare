@@ -18,20 +18,10 @@ const createSchedule = async ({
   const timeSlot = await db.TimeSlot.findByPk(timeSlotId);
   if (!timeSlot) throw new Error("TimeSlot not found");
 
-  const todayLocal = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-  const workDateLocal = new Date(workDate).toLocaleDateString("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-  if (workDateLocal === todayLocal) {
-    const nowTime = new Date().toLocaleTimeString("en-GB", {
-      hour12: false,
-      timeZone: "Asia/Ho_Chi_Minh",
-    });
-    if (timeSlot.startTime <= nowTime) {
-      throw new Error("Cannot create schedule for a time slot that already passed");
-    }
+  // Check if time slot has passed (assumes server timezone is Asia/Ho_Chi_Minh)
+  const slotDateTime = new Date(`${workDate}T${timeSlot.startTime}`);
+  if (slotDateTime <= new Date()) {
+    throw new Error("Không thể tạo lịch cho khung giờ đã qua");
   }
 
   const conflict = await db.Schedule.findOne({
@@ -98,23 +88,20 @@ const createScheduleBulk = async ({
     throw new Error("One or more TimeSlots not found");
   }
 
-  const todayLocal = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-  const workDateLocal = new Date(workDate).toLocaleDateString("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
+  // Check if any time slot has passed (assumes server timezone is Asia/Ho_Chi_Minh)
+  const now = new Date();
+  console.log("Current server time:", now);
+  const hasInvalidSlot = timeSlots.some((slot) => {
+    const slotDateTime = new Date(`${workDate}T${slot.startTime}`);
+  console.log("Current server time:", slotDateTime);
+
+    return slotDateTime <= now;
   });
 
-  if (workDateLocal === todayLocal) {
-    const nowTime = new Date().toLocaleTimeString("en-GB", {
-      hour12: false,
-      timeZone: "Asia/Ho_Chi_Minh",
-    });
-    const invalidSlots = timeSlots.filter((slot) => slot.startTime <= nowTime);
-    if (invalidSlots.length) {
-      throw new Error("Không thể tạo lịch cho các khung giờ đã qua");
-    }
+  if (hasInvalidSlot) {
+    throw new Error("Không thể tạo lịch cho các khung giờ đã qua");
   }
+
 
   /* ========= 6. Chuẩn bị data để tạo ========= */
   const schedulesToCreate = timeSlotIds.map((slotId) => ({
@@ -145,7 +132,6 @@ const getSchedules = async (filters) => {
     { model: db.Booking, as: "bookings" },
   ];
 
-  // Convert workDate string (YYYY-MM-DD) to DATE for comparison
   if (filters.workDate) {
     where[db.Sequelize.Op.and] = [
       db.Sequelize.where(
@@ -155,19 +141,12 @@ const getSchedules = async (filters) => {
       ),
     ];
 
-    // When querying today's schedules, skip time slots that have already passed
-    const todayLocal = new Date().toLocaleDateString("en-CA", {
-      timeZone: "Asia/Ho_Chi_Minh",
-    });
-    if (filters.workDate === todayLocal) {
-      const nowTime = new Date().toLocaleTimeString("en-GB", {
-        hour12: false,
-        timeZone: "Asia/Ho_Chi_Minh",
-      });
-
+    const today = new Date().toISOString().split("T")[0];
+    
+    if (filters.workDate === today) {
+      const nowTime = new Date().toTimeString().split(" ")[0]; // HH:mm:ss
       include[1] = {
         ...include[1],
-        // Bỏ hẳn ca đang diễn ra; chỉ lấy ca bắt đầu sau thời điểm hiện tại
         where: { startTime: { [Op.gt]: nowTime } },
         required: true,
       };
