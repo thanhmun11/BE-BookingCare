@@ -72,7 +72,6 @@ let initWebRoutes = (app) => {
   router.delete("/api/time-slots/:id", timeSlotController.deleteTimeSlot); // xóa time slot
 
   // schedule
-  router.post("/api/schedules", scheduleController.createSchedule); // tạo schedule
   router.post("/api/schedules/bulk", scheduleController.createScheduleBulk); // tạo nhiều schedule
   router.get("/api/schedules", scheduleController.getSchedules); // lấy danh sách schedules
   router.patch("/api/schedules/:id", scheduleController.updateSchedule); // cập nhật schedule

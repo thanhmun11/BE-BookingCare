@@ -1,39 +1,6 @@
 const db = require("../models/index");
 const { Op } = db.Sequelize;
 
-// Tạo lịch mới
-const createSchedule = async ({
-  doctorId,
-  timeSlotId,
-  workDate,
-  maxPatient,
-}) => {
-  if (!doctorId || !timeSlotId || !workDate || !maxPatient) {
-    throw new Error("Missing required parameters");
-  }
-
-  const doctor = await db.Doctor.findByPk(doctorId);
-  if (!doctor) throw new Error("Doctor not found");
-
-  const timeSlot = await db.TimeSlot.findByPk(timeSlotId);
-  if (!timeSlot) throw new Error("TimeSlot not found");
-
-  // Check if time slot has passed (assumes server timezone is Asia/Ho_Chi_Minh)
-  const slotDateTime = new Date(`${workDate}T${timeSlot.startTime}`);
-  if (slotDateTime <= new Date()) {
-    throw new Error("Không thể tạo lịch cho khung giờ đã qua");
-  }
-
-  const conflict = await db.Schedule.findOne({
-    where: { doctorId, timeSlotId, workDate },
-  });
-  if (conflict)
-    throw new Error(
-      "Schedule conflict: Doctor already has a schedule for this time slot on this date"
-    );
-
-  return db.Schedule.create({ doctorId, timeSlotId, workDate, maxPatient });
-};
 
 // Tạo lịch hàng loạt (bulk) với việc xóa lịch cũ của ngày đó
 const createScheduleBulk = async ({
@@ -90,18 +57,14 @@ const createScheduleBulk = async ({
 
   // Check if any time slot has passed (assumes server timezone is Asia/Ho_Chi_Minh)
   const now = new Date();
-  console.log("Current server time:", now);
   const hasInvalidSlot = timeSlots.some((slot) => {
     const slotDateTime = new Date(`${workDate}T${slot.startTime}`);
-  console.log("Current server time:", slotDateTime);
-
     return slotDateTime <= now;
   });
 
   if (hasInvalidSlot) {
     throw new Error("Không thể tạo lịch cho các khung giờ đã qua");
   }
-
 
   /* ========= 6. Chuẩn bị data để tạo ========= */
   const schedulesToCreate = timeSlotIds.map((slotId) => ({
@@ -142,7 +105,7 @@ const getSchedules = async (filters) => {
     ];
 
     const today = new Date().toISOString().split("T")[0];
-    
+
     if (filters.workDate === today) {
       const nowTime = new Date().toTimeString().split(" ")[0]; // HH:mm:ss
       include[1] = {
@@ -195,7 +158,6 @@ const updateSchedule = async (scheduleId, data) => {
 };
 
 module.exports = {
-  createSchedule,
   createScheduleBulk,
   getSchedules,
   updateSchedule,

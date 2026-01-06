@@ -1,15 +1,5 @@
 const scheduleService = require("../services/scheduleService");
 
-// POST /schedules
-const createSchedule = async (req, res) => {
-  try {
-    const schedule = await scheduleService.createSchedule(req.body);
-    res.status(201).json(schedule);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
 const createScheduleBulk = async (req, res) => {
   try {
     const schedules = await scheduleService.createScheduleBulk(req.body);
@@ -43,7 +33,6 @@ const updateSchedule = async (req, res) => {
 };
 
 module.exports = {
-  createSchedule,
   createScheduleBulk,
   getSchedules,
   updateSchedule,

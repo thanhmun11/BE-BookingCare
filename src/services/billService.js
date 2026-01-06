@@ -1,9 +1,9 @@
 const db = require("../models/index");
 const emailService = require("./emailService");
 
-const createBill = async ({ medicalRecordId, method }) => {
+const createBill = async ({ medicalRecordId }) => {
   /* ========= 1. Validate ========= */
-  if (!medicalRecordId || !method) {
+  if (!medicalRecordId ) {
     throw new Error("Missing required parameters");
   }
 
